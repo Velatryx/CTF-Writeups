@@ -103,6 +103,6 @@ Warning: OSScan results may be unreliable because we could not find at least 1 o
 --- 
 Task1: Employee of the month:
 
-[https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Easy/MountainSteel/images/Screenshot%20From%202026-07-04%2020-55-20.png]
+![](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Easy/MountainSteel/images/Screenshot%20From%202026-07-04%2020-55-20.png)
 
 
