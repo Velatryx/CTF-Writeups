@@ -1,5 +1,7 @@
 ## Cheese CTF
 
+Machine IP: `10.128.190.167`
+
 Room Description: Inspired by the great cheese talk of THM!
 
 ---
