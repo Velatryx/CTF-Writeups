@@ -431,3 +431,7 @@ root@ip-10-128-190-167:/home/comte#
 ```
 
 And finishing the CTF.
+
+---
+
+You may check [this](https://jaxafed.github.io/posts/tryhackme-cheese_ctf/) for a more detailed writeup.
