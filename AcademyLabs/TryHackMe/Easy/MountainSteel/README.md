@@ -4,8 +4,6 @@ Hack into a Mr. Robot themed Windows machine. Use metasploit for initial access,
 
 ---
 
-Task 1: Employee of the Month
-
 First, I ran a `rustscan`
 
 ```bash
@@ -102,6 +100,9 @@ PORT      STATE SERVICE       REASON          VERSION
 Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port
 ```
 
+--- 
+Task1: Employee of the month:
 
+[https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Easy/MountainSteel/images/Screenshot%20From%202026-07-04%2020-55-20.png]
 
 
