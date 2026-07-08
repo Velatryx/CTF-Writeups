@@ -231,3 +231,15 @@ That's okay :)
 
 ### Initial Foothold & PrivEsc
 
+```bash
+cyber@ubuntu:~$ sudo -l
+Matching Defaults entries for cyber on ubuntu:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User cyber may run the following commands on ubuntu:
+    (root) NOPASSWD: /usr/bin/python3 /home/cyber/run.py
+cyber@ubuntu:~$ sudo /usr/bin/python3 /home/cyber/run.py
+Hey Cyber I have tested all the main components of our web server but something unusal happened from my end!
+
+cyber@ubuntu:~$
+```
