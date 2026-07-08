@@ -87,4 +87,7 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
 
 <img width="3456" height="2096" alt="Screenshot From 2026-07-08 15-03-02" src="https://github.com/user-attachments/assets/d01681a4-41e3-47a1-9ac4-9e5faa102beb" />
 
+> Then I eventually found the code snippet (check [report.c](https://github.com/Velatryx/CTF-Writeups/edit/main/AcademyLabs/TryHackMe/Medium/battery/report.c)) which is vulnerable to `Stack-Based Buffer Overflow`.
+
+> In the snippet, the buffers local_88 and local_68 are allocated 32 bytes each. When scanf reads input into these buffers without a limit, it continues writing past the end of the allocated memory. This allows you to overwrite adjacent stack data, including the saved frame pointer (RBP) and, crucially, the saved return address (RIP). Once you have the offset, you can overwrite the return address with the address of a function you want to execute (e.g., a hidden win() function if one exists, or a system("/bin/sh") call).
 
