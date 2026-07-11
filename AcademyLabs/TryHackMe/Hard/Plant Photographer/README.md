@@ -126,7 +126,7 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
 
 ---
 
-When we made a request to /download endpoint, we sent this GET request: 'GET /download?server=secure-file-storage.com:8087&id=75482342 HTTP/1.1' which downloads the resume of the owner of this page: Jay Green. The server was making requests to only internally accessible service, which requires `id` parameter, which gives `no file selected...` error. I tried changing `secure-file-storage.com` to `localhost/admin` but that alone gave the same error. After some digging, I found out that adding `?` query parameter before `&`, separates the id parameter from being parsed with server. Final request looked like:
+When we made a request to /download endpoint, we sent this GET request: `GET /download?server=secure-file-storage.com:8087&id=75482342 HTTP/1.1` which downloads the resume of the owner of this page: Jay Green. The server was making requests to only internally accessible service, which requires `id` parameter, which gives `no file selected...` error. I tried changing `secure-file-storage.com` to `localhost/admin` but that alone gave the same error. After some digging, I found out that adding `?` query parameter before `&`, separates the id parameter from being parsed with server. Final request looked like:
 
 ```
 curl "http://plant.thm/download?server=http://127.0.0.1/admin?&id=0"
