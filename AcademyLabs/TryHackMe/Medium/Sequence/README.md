@@ -144,7 +144,7 @@ Robert
 
 Then when I saw `contact.php` I thought what if we could use stored XSS to fetch mod or admin cookies and send them to me?
 
-![image](Images/Screenshot From 2026-07-11 13-22-17.png)
+![image](Images/Screenshot%20From%202026-07-11%2013-22-17.png)
 
 > And I started receiving session ids:
 
