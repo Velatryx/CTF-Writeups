@@ -61,7 +61,7 @@ Device type: general purpose|phone
 Running (JUST GUESSING): Linux 5.X|6.X|4.X (96%), Google Android 10.X|11.X|12.X|9.X (93%)
 ```
 
-![image](Images/Screenshot From 2026-07-11 12-11-58.png)
+![image](Images/Screenshot%20From%202026-07-11%2012-11-58.png)
 
 ---
 
