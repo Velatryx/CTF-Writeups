@@ -320,7 +320,6 @@ flag.pdf: PDF document, version 1.6, 1 page(s)
 | Input Value | Source File / Logic | Command Used to Extract / Python Logic |
 | --- | --- | --- |
 | **username** | `/proc/self/status` <br>
-
 <br> (or `/etc/passwd`) | Look for `Uid: 0 0 0 0` $\rightarrow$ maps to `root`. `getpass.getuser()` handles this internally. |
 | **modname** | Standard Flask attribute | Derived directly from the framework source: `flask.app`. |
 | **appname** | Standard Flask attribute | The name of the class instantiation: `Flask`. |
