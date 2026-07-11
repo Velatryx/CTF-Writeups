@@ -61,6 +61,11 @@ Device type: general purpose|phone
 Running (JUST GUESSING): Linux 5.X|6.X|4.X (96%), Google Android 10.X|11.X|12.X|9.X (93%)
 ```
 
+![image](Images/Screenshot From 2026-07-11%2012-11-58.png)
+
+---
+
+
 ## Feroxbuster results:
 
 ```
@@ -131,4 +136,7 @@ I will be away on holiday but will be back soon.
 Regards,  
 Robert
 ```
+
+> I tried default credentials for phpMyAdmin login page, like root:null, and root:password etc, then searched for CVEs for the version 4.9.5, but only found an XSS vulnerability, which was not handy.
+
 
