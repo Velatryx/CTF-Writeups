@@ -1,4 +1,4 @@
-## Sequence (MAX) Room
+## Sequence (MAX)
 
 Room Description: Chain multiple vulnerabilities to take control of a system.
 
