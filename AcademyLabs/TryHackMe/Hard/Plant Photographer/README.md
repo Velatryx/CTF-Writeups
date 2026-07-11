@@ -315,8 +315,7 @@ flag.pdf: PDF document, version 1.6, 1 page(s)
 ---
 
 ## Things we needed to crack the PIN:
-```
-Here is that exact data mapping laid out in a clean, organized table for your reference:
+
 
 | Input Value | Source File / Logic | Command Used to Extract / Python Logic |
 | --- | --- | --- |
@@ -328,7 +327,7 @@ Here is that exact data mapping laid out in a clean, organized table for your re
 | **modfile** | `/proc/self/maps` | Look for the absolute path mapped to the process: `/usr/local/lib/python3.10/site-packages/flask/app.py`. |
 | **MAC (as int)** | `/sys/class/net/eth0/address` | Extracted `02:42:ac:14:00:02`, stripped the colons, and converted from Hex to Base-10 Integer string. |
 | **Machine ID** | `/proc/self/cgroup` | Read the cgroup lines and extracted the string following the `/docker/` path identifier. |
-```     
+
 
 ## Calculating PIN for /console endpoint via leaked source code (werkzeug/debug/__init__.py):
 
