@@ -2,7 +2,7 @@
 
 Room Description: A room with some ctf elements inspired in text based RPGs
 
-
+![image](Images/cave.png)
 
 ---
 
