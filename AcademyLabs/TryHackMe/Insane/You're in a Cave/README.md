@@ -149,6 +149,6 @@ At least we get a clue about 'pwd': `/home/cave/src`.
 
 ![image](Images/POST-before.png)
 
-> Then I changed the `Content-Type` header to `application/xml`, because the server also accepted xml type.
+> Then I changed the `Content-Type` header to `application/xml`, because the server also accepted xml type. And it finally gives us something to work with in the error message.
 
 ![image](Images/POST-afterXML.png)
