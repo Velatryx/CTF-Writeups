@@ -149,6 +149,57 @@ At least we get a clue about 'pwd': `/home/cave/src`.
 
 ![image](Images/POST-before.png)
 
+---
+
+## XXE Injection & Exfiltration
+
 > Then I changed the `Content-Type` header to `application/xml`, because the server also accepted xml type. And it finally gives us something to work with in the error message.
 
 ![image](Images/POST-afterXML.png)
+
+> Then I pasted a basic XML text to see if it worked. If we see "Doe" printed on response, it is vulnerable to XXE injection. And... It worked!!!
+
+![image](Images/Screenshot%20From%202026-07-12%2020-48-37.png)
+
+> I already knew the server used php technology, obviously from .php extensions. After this, I exfiltrated `/etc/passwd`, using 'php://' wrapper to encode the output in base64, because as we know, this file includes special characters that are not suitable for XML structure, and easily breaks it, that's why we encode it to avoid those issues. And bull's eye!
+
+![images](Images/Screenshot%20From%202026-07-12%2020-48-47.png)
+
+
+> Decoded output:
+
+```text
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:101:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:105::/nonexistent:/usr/sbin/nologin
+sshd:x:105:65534::/run/sshd:/usr/sbin/nologin
+cave:x:1000:1000:,,,:/home/cave:/bin/bash
+door:x:1001:1001:,,,:/home/door:/bin/bash
+skeleton:x:1002:1002:,,,:/home/skeleton:/bin/bash
+```
+
+> Oh, we look what we have: `cave`, `door`, and `skeleton`. Looking at the output of /etc/hostname, the current user is `cave`.
+
+## Action.php Contents & Leakage:
+
+![image](Images/Screenshot%20From%202026-07-12%2021-00-49.png)
