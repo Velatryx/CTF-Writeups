@@ -282,5 +282,5 @@ skeleton:x:1002:1002:,,,:/home/skeleton:/bin/bash
 
 ![image](Images/Screenshot%20From%202026-07-12%2021-57-07.png)
 
-> Decoded Output: [here]([https://github.com/Velatryx/AcademyLabs/TryHackMe/Insane/You're%20in%20a%20CaveRPG.java](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Insane/You're%20in%20a%20Cave/RPG.java))
+> Decoded Output: [here](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Insane/You're%20in%20a%20Cave/RPG.java)
 
