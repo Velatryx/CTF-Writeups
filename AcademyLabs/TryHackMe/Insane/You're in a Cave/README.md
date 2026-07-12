@@ -71,7 +71,7 @@ PORT     STATE SERVICE    REASON         VERSION
 > Feroxbuster results:
 
 ```bash
-feroxbuster -u http://cave.thm -w /usr/share/wordlists/seclists/Discovery/Web-Content/common.txt
+feroxbuster -u http://cave.thm -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt            
                                                                                                                                                                    
  ___  ___  __   __     __      __         __   ___
 |__  |__  |__) |__) | /  `    /  \ \_/ | |  \ |__
@@ -81,7 +81,7 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
  🎯  Target Url            │ http://cave.thm/
  🚩  In-Scope Url          │ cave.thm
  🚀  Threads               │ 50
- 📖  Wordlist              │ /usr/share/wordlists/seclists/Discovery/Web-Content/common.txt
+ 📖  Wordlist              │ /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
  👌  Status Codes          │ All Status Codes!
  💥  Timeout (secs)        │ 7
  🦡  User-Agent            │ feroxbuster/2.13.1
@@ -94,13 +94,15 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
 ──────────────────────────────────────────────────
 404      GET        9l       31w      270c Auto-filtering found 404-like response and created new filter; toggle off with --dont-filter
 403      GET        9l       28w      273c Auto-filtering found 404-like response and created new filter; toggle off with --dont-filter
+200      GET        1l        1w      197c http://cave.thm/search
 400      GET        0l        0w        0c http://cave.thm/action.php
 200      GET       14l       27w      337c http://cave.thm/
-200      GET       14l       27w      337c http://cave.thm/index.php
+200      GET        1l        1w      181c http://cave.thm/attack
+200      GET        1l        1w      261c http://cave.thm/lamp
 200      GET        1l        1w      249c http://cave.thm/matches
-200      GET        1l        1w      197c http://cave.thm/search
-[####################] - 11s     4752/4752    0s      found:5       errors:0      
-[####################] - 11s     4751/4751    423/s   http://cave.thm/
+200      GET        1l        1w      161c http://cave.thm/walk
+[####################] - 6m    220547/220547  0s      found:7       errors:2      
+[####################] - 6m    220546/220546  643/s   http://cave.thm/ 
 ```
 
 ---
@@ -115,6 +117,8 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
 
 Using cyberchef, I got some readable strings when converted from Base64, which I already knew by connecting to port 3333 using nc:
 
+> matches
+
 ```shell
 ┌──(root㉿kali)-[~]
 └─# nc cave.thm 3333
@@ -123,7 +127,7 @@ You find yourself in a cave, what do you do?
 You find a box of matches, it gives enough fire for you to see that you're in /home/cave/src.
 ```
 
-and 
+> search
 
 ```shell
 ┌──(root㉿kali)-[~]
@@ -134,6 +138,42 @@ You can't see anything, the cave is very dark.
 ```
 
 At least we get a clue about 'pwd': `/home/cave/src`.
+
+> attack
+
+```shell
+┌──(root㉿kali)-[~]
+└─# nc cave.thm 3333                                                                                            
+You find yourself in a cave, what do you do?
+attack
+You punch the wall, nothing happens.
+```
+
+> lamp
+
+```shell
+┌──(root㉿kali)-[~]
+└─# nc cave.thm 3333
+You find yourself in a cave, what do you do?
+lamp
+You grab a lamp, and it gives enough light to search around
+Action.class
+RPG.class
+RPG.java
+Serialize.class
+commons-io-2.7.jar
+run.sh
+```
+
+> walk
+
+```shell
+┌──(root㉿kali)-[~]
+└─# nc cave.thm 3333
+You find yourself in a cave, what do you do?
+walk
+There's nowhere to go.
+```
 
 ---
 
@@ -203,3 +243,44 @@ skeleton:x:1002:1002:,,,:/home/skeleton:/bin/bash
 ## Action.php Contents & Leakage:
 
 ![image](Images/Screenshot%20From%202026-07-12%2021-00-49.png)
+
+
+> Decoded Output:
+
+```text
+<?php
+     
+    libxml_disable_entity_loader (false);
+    libxml_use_internal_errors(true);
+
+    $data = trim(file_get_contents('php://input'));
+    if($data == ""){
+        $data = urldecode(trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY)));
+    }
+    $dom = new DOMDocument();
+    $dom->loadXML($data, LIBXML_NOENT | LIBXML_DTDLOAD);
+    $xml = simplexml_import_dom($dom);
+     
+    if(!isset($xml)) {
+        header($_SERVER["SERVER_PROTOCOL"]." 400 Bad Request", true, 400);
+
+        if($_SERVER["CONTENT_TYPE"] == "application/xml" || $_SERVER["CONTENT_TYPE"] == "text/xml"){
+            foreach(libxml_get_errors() as $xmlError) {
+                echo $xmlError->message . "\t";
+            }
+        }
+
+        exit;
+    }
+
+    echo $xml;
+?>
+
+```
+
+> Reading RPG.java from `/home/cave/src/RPG.java`:
+
+![image](Images/Screenshot%20From%202026-07-12%2021-57-07.png)
+
+> Decoded Output: [here](https://github.com/Velatryx/AcademyLabs/TryHackMe/Insane/You're%20in%20a%20CaveRPG.java)
+
