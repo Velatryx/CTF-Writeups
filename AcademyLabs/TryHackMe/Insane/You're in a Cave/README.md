@@ -116,7 +116,8 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
 Using cyberchef, I got some readable strings when converted from Base64, which I already knew by connecting to port 3333 using nc:
 
 ```shell
-nc cave.thm 3333
+┌──(root㉿kali)-[~]
+└─# nc cave.thm 3333
 You find yourself in a cave, what do you do?
 > matches
 You find a box of matches, it gives enough fire for you to see that you're in /home/cave/src.
