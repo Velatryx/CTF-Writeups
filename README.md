@@ -4,8 +4,6 @@ Welcome to my repository dedicated to Capture The Flag (CTF) writeups and securi
 
 ---
 
-# Capture The Flag (CTF) Repository
-
 This repository contains proof-of-concept (PoC) scripts, challenge solutions, and educational notes from various Capture The Flag (CTF) competitions and labs (including TryHackMe and Hack The Box).
 
 ## Purpose & Disclaimer
