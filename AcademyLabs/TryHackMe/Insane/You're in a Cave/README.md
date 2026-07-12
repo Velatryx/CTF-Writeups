@@ -145,3 +145,10 @@ At least we get a clue about 'pwd': `/home/cave/src`.
 
 ![image](Images/Screenshot%20From%202026-07-12%2020-25-16.png)
 
+> POST Request in BP looked like this:
+
+![image](Images/POST-before.png)
+
+> Then I changed the `Content-Type` header to `application/xml`, because the server also accepted xml type.
+
+![image](Images/POST-afterXML.png)
