@@ -11,7 +11,7 @@ We know that computers are deterministic, so if you know the seed value, you can
 
 > Seed value  exposed:
 
-```
+```java
 @Component
 public class DataSeeder implements CommandLineRunner {
 
@@ -88,7 +88,7 @@ Mechanics: The library includes serializable functor classes such as org.apache.
 When an application accepts serialized Java objects from untrusted sources (e.g., via RMI, JMX, HTTP headers, or custom sockets) and has this library on its classpath, attackers can chain these classes into a "gadget chain" to achieve arbitrary command execution on the server.  
 
 
-```
+```xml
 <dependency>
 <groupId>commons-collections</groupId>
 <artifactId>commons-collections</artifactId>
@@ -102,7 +102,7 @@ When an application accepts serialized Java objects from untrusted sources (e.g.
 
 > In this file, there are also exposed credentials, which looks like a special user created just for looking up things like inmates, and case files. The credentials are assigned to constants declared in a public class.
 
-```
+```java
 @Configuration
 public class DataAccessConfig {
 
@@ -118,7 +118,7 @@ public class DataAccessConfig {
 
 > Found in another file.
 
-```
+```java
     private void provisionLookupAccount() {
         // The inmate lookup connects under a reduced-privilege account rather than
         // the application account. It is granted read access only to the record
