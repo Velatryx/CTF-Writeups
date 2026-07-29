@@ -8,6 +8,45 @@ We know that computers are deterministic, so if you know the seed value, you can
 
 > Other than that, I noticed a hardcoded password "IronholdStaff2026!", set for officers and Staff members.
 
+
+> Seed value  exposed:
+
+```
+@Component
+public class DataSeeder implements CommandLineRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
+    private static final Random RNG = new Random(42);
+
+    private final StaffRepository staffRepository;
+    private final InmateRepository inmateRepository;
+    private final MovementRepository movementRepository;
+
+...
+    @Value("${app.kiosk.pw}")
+    private String kioskPassword;
+
+    @Value("${app.warden.password}")
+    private String wardenPassword;
+
+    @Value("${app.flag1.secret}")
+    private String flag1;
+
+    @Value("${app.flag2.secret}")
+    private String flag2;
+
+    @Value("${app.flag3.secret}")
+    private String flag3;
+
+    public DataSeeder(StaffRepository staffRepository,
+                       InmateRepository inmateRepository,
+                       MovementRepository movementRepository,
+...
+}
+```
+
+> Exposed plaintext credentials
+
 ```java
  private List<Staff> seedStaff() {
         Staff kiosk = new Staff();
@@ -61,7 +100,7 @@ When an application accepts serialized Java objects from untrusted sources (e.g.
 
 ## 3. DataAccessConfig.java:
 
-> In this file, there are also exposed credentials, which looks like a special user created just for looking up things. The credentials are assigned to constants declared in a public class.
+> In this file, there are also exposed credentials, which looks like a special user created just for looking up things like inmates, and case files. The credentials are assigned to constants declared in a public class.
 
 ```
 @Configuration
@@ -77,3 +116,16 @@ public class DataAccessConfig {
     }
 ```
 
+> Found in another file.
+
+```
+    private void provisionLookupAccount() {
+        // The inmate lookup connects under a reduced-privilege account rather than
+        // the application account. It is granted read access only to the record
+        // tables that feature serves, so it cannot reach staff credentials,
+        // internal notices, or host files even if a query is malformed.
+        jdbcTemplate.execute("CREATE USER IF NOT EXISTS " + DataAccessConfig.LOOKUP_USER
+                + " PASSWORD '" + DataAccessConfig.LOOKUP_PASSWORD + "'");
+        jdbcTemplate.execute("GRANT SELECT ON inmates TO " + DataAccessConfig.LOOKUP_USER);
+        jdbcTemplate.execute("GRANT SELECT ON case_files TO " + DataAccessConfig.LOOKUP_USER);
+```
