@@ -351,3 +351,29 @@ Table: CASE_FILES
 > Manual discovery of tables `case_files` and `inmates`:
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Screenshot%20From%202026-07-30%2000-14-27.png)
+
+---
+
+## Privilege Escalation: Mass  Assignment Vulnerability in Role parameter in `/profile/update` endpoint
+
+> Inside the source code: /Controller/ProfileController.java, there is a logic bug, where aside from `full_name`, `username`, and `badge_number` it also expects `role` parameter, which is not shown in the burp request, and sets it to `current.setRole()` if is blank/null. We can simply add a `role` parameter and set it to `Warden` which is leaked through source code inside `/DataSeeder.java`.
+
+> Burp request:
+
+```burp
+fullName=Shift+Kiosk+Account&email=kiosk%40ironhold.example&badgeNumber=K-000&role=WARDEN
+```
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Screenshot%20From%202026-07-30%2001-11-33.png)
+
+> Before forged request:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Screenshot%20From%202026-07-30%2001-11-52.png)
+
+> After forged request:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Screenshot%20From%202026-07-30%2001-12-01.png)
+
+> /admin/control panel after privilege escalation:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Screenshot%20From%202026-07-30%2001-12-43.png)
