@@ -162,4 +162,4 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
 
 ## More Recon and Information Gathering
 
-> During the assessment of the vulnerable website, I came accross this /actuator endpoint, where the directory contents were fully exposed. I found /actuator/env, and started reading the contents. Then I found another exposed credential `kiosk:Sh1ftK10sk#2091` the username and password fully in plaintext. Let's note that.
+> During the assessment of the vulnerable website, I came accross this /actuator endpoint, where the directory contents were fully exposed. I found /actuator/env, and started reading the contents. Then I found another exposed credential `kiosk:Sh1ftK10sk#2091` the username and password fully in plaintext. Then, from the source code, I found two other leaked credentials; 1. `ironhold_lookup:Lk_r0_2091!` and 2. `j.reyes,m.chen,a.osei,l.bianchi:IronholdStaff2026!` (4 staff members assigned same password) Let's note these. For source code, and how we found these, look [here](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/SourceCode/README.md)
