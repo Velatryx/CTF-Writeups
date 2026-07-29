@@ -347,3 +347,7 @@ Table: CASE_FILES
 | 1  | Internal Affairs Review | THM{redacted} | OPEN     | 2026-04-29 19:07:15.809349 | IA-2024-007 |
 +----+-------------------------+---------------------------------+----------+----------------------------+-------------+
 ```
+
+> Manual discovery of tables `case_files` and `inmates`:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Screenshot%20From%202026-07-30%2000-14-27.png)
