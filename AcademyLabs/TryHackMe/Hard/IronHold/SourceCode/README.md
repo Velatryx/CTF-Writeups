@@ -56,3 +56,24 @@ When an application accepts serialized Java objects from untrusted sources (e.g.
 <version>[3.2,3.2.2)</version>
 </dependency>
 ```
+
+---
+
+## 3. DataAccessConfig.java:
+
+> In this file, there are also exposed credentials, which looks like a special user created just for looking up things. The credentials are assigned to constants declared in a public class.
+
+```
+@Configuration
+public class DataAccessConfig {
+
+    public static final String LOOKUP_USER = "ironhold_lookup";
+    public static final String LOOKUP_PASSWORD = "Lk_r0_2091!";
+
+    @Bean
+    @Primary
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+```
+
