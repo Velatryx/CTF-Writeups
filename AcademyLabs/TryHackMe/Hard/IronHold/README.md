@@ -123,3 +123,38 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
 
 ---
 
+## Exposed Endpoints in the source code
+
+```
+/
+/login
+/logout
+/about
+/status
+/css/**
+/error
+/actuator/**
+/admin
+/admin/**
+/admin/export
+/admin/staff
+/ironhold-internal:8080/admin/import
+/staff
+/staff/{id}
+/control
+/roster
+/settings
+/settings/diagnostics
+/profile
+/profile/update
+/incidents
+/commissary
+/comissary/orders
+/visitation
+/visitation/new
+/inmates
+/inmates/search
+/inmates/{inmate_id}/movements        # Exposed in inmate-detail.html
+/notices
+```
+
