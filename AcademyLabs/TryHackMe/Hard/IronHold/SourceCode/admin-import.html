@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Bulk Import | Ironhold Correctional</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div th:replace="~{fragments/nav :: nav}"></div>
+<main>
+    <h1>Bulk Import</h1>
+    <div class="card">
+        <p>This endpoint accepts a batch manifest produced by
+            <a th:href="@{/admin/export}">Bulk Export</a> and restores it against the
+            live database. It is used exclusively by the legacy migration tool during
+            the vendor cutover and is not intended for browser use.</p>
+        <p class="muted">Batches are base64-encoded, serialised manifest objects,
+            POSTed directly as the request body to this same URL.</p>
+    </div>
+    <div class="card">
+        <h3>Example (migration tool CLI)</h3>
+        <pre>migrate-tool export --batch legacy-2019 | migrate-tool push http://ironhold-internal:8080/admin/import</pre>
+    </div>
+</main>
+<footer class="foot">&copy; Ironhold Department of Corrections</footer>
+</body>
+</html>
