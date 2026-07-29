@@ -358,6 +358,27 @@ Table: CASE_FILES
 
 > Inside the source code: /Controller/ProfileController.java, there is a logic bug, where aside from `full_name`, `username`, and `badge_number` it also expects `role` parameter, which is not shown in the burp request, and sets it to `current.setRole()` if is blank/null. We can simply add a `role` parameter and set it to `Warden` which is leaked through source code inside `/DataSeeder.java`.
 
+> Vulnerable Code:
+
+```java
+    @PostMapping("/profile/update")
+    public String update(@ModelAttribute Staff staff, HttpSession session) {
+        Staff current = staffRepository.findByUsername(SessionUtil.currentUsername(session));
+
+        current.setFullName(staff.getFullName());
+        current.setEmail(staff.getEmail());
+        if (staff.getBadgeNumber() != null && !staff.getBadgeNumber().isBlank()) {
+            current.setBadgeNumber(staff.getBadgeNumber());
+        }
+        if (staff.getRole() != null && !staff.getRole().isBlank()) {
+            current.setRole(staff.getRole());
+        }
+
+        staffRepository.save(current);
+        return "redirect:/profile";
+    }
+```
+
 > Burp request:
 
 ```burp
@@ -386,6 +407,27 @@ fullName=Shift+Kiosk+Account&email=kiosk%40ironhold.example&badgeNumber=K-000&ro
 > Now that we can access `/admin/import` and `/admin/export`, and also know that there is a vulnerable dependency to Java Deserialization, we can achieve RCE. In the `/export` endpoint, I saw a serialized output, so we will have to somehow post a serialized RCE payload. I used `ysoserial` for this.
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Screenshot%20From%202026-07-30%2001-41-29.png)
+
+
+> Vulnerable Code:
+
+```java
+    @PostMapping(value = "/admin/import", consumes = MediaType.ALL_VALUE)
+    @ResponseBody
+    public ResponseEntity<String> importData(@RequestBody String body) {
+        try {
+            byte[] decoded = Base64.getDecoder().decode(body.trim());
+            try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(decoded))) {
+                Object restored = ois.readObject();    \\\ Here it reads the object, but does not check
+                return ResponseEntity.ok("Batch accepted: " + restored.getClass().getSimpleName());
+            }
+        } catch (Exception e) {
+            log.warn("Bulk import failed to deserialise: {}", e.toString());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Import failed: batch could not be read.");
+        }
+    }
+```
 
 ```shell
 ┌──(venv)─(root㉿kali)-[~/venv]
