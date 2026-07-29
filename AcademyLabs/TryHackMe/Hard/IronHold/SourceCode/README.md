@@ -152,3 +152,18 @@ public class DataAccessConfig {
     }
 
 ```
+
+> Two table names inside /seed/DataSeeder.java: `case_files` and `inmates`.
+
+```
+    private void provisionLookupAccount() {
+        // The inmate lookup connects under a reduced-privilege account rather than
+        // the application account. It is granted read access only to the record
+        // tables that feature serves, so it cannot reach staff credentials,
+        // internal notices, or host files even if a query is malformed.
+        jdbcTemplate.execute("CREATE USER IF NOT EXISTS " + DataAccessConfig.LOOKUP_USER
+                + " PASSWORD '" + DataAccessConfig.LOOKUP_PASSWORD + "'");
+        jdbcTemplate.execute("GRANT SELECT ON inmates TO " + DataAccessConfig.LOOKUP_USER);
+        jdbcTemplate.execute("GRANT SELECT ON case_files TO " + DataAccessConfig.LOOKUP_USER);
+    }
+```
