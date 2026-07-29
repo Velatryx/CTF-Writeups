@@ -1,6 +1,5 @@
 ## IronHold 
 
-![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Ironhold.png)
 
 Room Description: The source leaked. Read it like an attacker, chain the flaws, and shell the door-control server.
 
@@ -9,6 +8,8 @@ We start with nothing but what leaked: the full, unredacted source, and a live c
 Get all four and Ironhold's last system goes down the same way it went up: on its own mistakes.
 Download the source archive attached to this task and start reading. The lab machine is reachable at http://MACHINE_IP:8080.
 
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/IronHold/Images/Ironhold.png)
 
 ---
 
