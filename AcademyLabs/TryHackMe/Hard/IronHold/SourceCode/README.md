@@ -134,6 +134,8 @@ public class DataAccessConfig {
 
 ## 4. InmateController.java: SQL Injection
 
+> The injection point is obvious, since there is no sanitization for query.
+
 ```java
     @GetMapping("/inmates/search")
     public String search(@RequestParam(required = false) String q, Model model) {
