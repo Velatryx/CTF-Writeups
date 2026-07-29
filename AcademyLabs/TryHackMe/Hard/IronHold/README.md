@@ -158,3 +158,8 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
 /notices
 ```
 
+---
+
+## More Recon and Information Gathering
+
+> During the assessment of the vulnerable website, I came accross this /actuator endpoint, where the directory contents were fully exposed. I found /actuator/env, and started reading the contents. Then I found another exposed credential `kiosk:Sh1ftK10sk#2091` the username and password fully in plaintext. Let's note that.
