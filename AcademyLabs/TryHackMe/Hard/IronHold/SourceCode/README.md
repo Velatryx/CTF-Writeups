@@ -129,3 +129,24 @@ public class DataAccessConfig {
         jdbcTemplate.execute("GRANT SELECT ON inmates TO " + DataAccessConfig.LOOKUP_USER);
         jdbcTemplate.execute("GRANT SELECT ON case_files TO " + DataAccessConfig.LOOKUP_USER);
 ```
+
+---
+
+## 4. InmateController.java: SQL Injection
+
+```java
+    @GetMapping("/inmates/search")
+    public String search(@RequestParam(required = false) String q, Model model) {
+        List<Map<String, Object>> results;
+        if (q == null || q.isBlank()) {
+            results = jdbcTemplate.queryForList("SELECT id, name, block FROM inmates");
+        } else {
+            String sql = "SELECT id, name, block FROM inmates WHERE name = '" + q + "'";
+            results = jdbcTemplate.queryForList(sql);
+        }
+        model.addAttribute("results", results);
+        model.addAttribute("query", q == null ? "" : q);
+        return "inmate-search";
+    }
+
+```
