@@ -2,7 +2,7 @@
 
 ---
 
-1. DataSeeder.java: 
+## 1. DataSeeder.java: 
    
 We know that computers are deterministic, so if you know the seed value, you can predict the values that a function will generate. We have the whole source code and the seed value, so it will be useful for predicting secrets, passwords, or values depending on where it is used.
 
@@ -37,7 +37,7 @@ We know that computers are deterministic, so if you know the seed value, you can
 
 ---
 
-2. pom.xml:
+## 2. pom.xml:
 
 > I was expecting to find another useful endpoint here, however, what I found was far more valuable - a severely vulnerable dependency. The version 3.2 is vulnerable to Java Deserialization RCE.
 
