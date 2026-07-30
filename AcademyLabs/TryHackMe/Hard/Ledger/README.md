@@ -189,6 +189,127 @@ Host script results:
 |_  start_date: N/A
 ```
 
+
+> Feroxbuster:
+
+```
+feroxbuster -u http://ledger.thm/ -w /usr/share/wordlists/seclists/Discovery/Web-Content/big.txt
+                                                                                                                                                                   
+ ___  ___  __   __     __      __         __   ___
+|__  |__  |__) |__) | /  `    /  \ \_/ | |  \ |__
+|    |___ |  \ |  \ | \__,    \__/ / \ | |__/ |___
+by Ben "epi" Risher 🤓                 ver: 2.13.1
+───────────────────────────┬──────────────────────
+ 🎯  Target Url            │ http://ledger.thm/
+ 🚩  In-Scope Url          │ ledger.thm
+ 🚀  Threads               │ 50
+ 📖  Wordlist              │ /usr/share/wordlists/seclists/Discovery/Web-Content/big.txt
+ 👌  Status Codes          │ All Status Codes!
+ 💥  Timeout (secs)        │ 7
+ 🦡  User-Agent            │ feroxbuster/2.13.1
+ 💉  Config File           │ /etc/feroxbuster/ferox-config.toml
+ 🔎  Extract Links         │ true
+ 🏁  HTTP methods          │ [GET]
+ 🔃  Recursion Depth       │ 4
+───────────────────────────┴──────────────────────
+ 🏁  Press [ENTER] to use the Scan Management Menu™
+──────────────────────────────────────────────────
+404      GET       29l       95w     1245c Auto-filtering found 404-like response and created new filter; toggle off with --dont-filter
+200      GET      334l     2089w   180418c http://ledger.thm/iisstart.png
+200      GET       32l       55w      703c http://ledger.thm/
+301      GET        2l       10w      155c http://ledger.thm/aspnet_client => http://ledger.thm/aspnet_client/
+404      GET       42l      157w     1914c http://ledger.thm/aux
+404      GET       42l      157w     1915c http://ledger.thm/com3
+404      GET       42l      157w     1915c http://ledger.thm/com2
+404      GET       42l      157w     1915c http://ledger.thm/com4
+404      GET       42l      157w     1915c http://ledger.thm/com1
+404      GET       42l      157w     1914c http://ledger.thm/con
+404      GET       42l      157w     1928c http://ledger.thm/aspnet_client/aux
+404      GET       42l      157w     1929c http://ledger.thm/aspnet_client/com1
+404      GET       42l      157w     1929c http://ledger.thm/aspnet_client/com2
+404      GET       42l      157w     1929c http://ledger.thm/aspnet_client/com4
+404      GET       42l      157w     1929c http://ledger.thm/aspnet_client/com3
+404      GET       42l      157w     1928c http://ledger.thm/aspnet_client/con
+404      GET       42l      157w     1915c http://ledger.thm/lpt1
+404      GET       42l      157w     1915c http://ledger.thm/lpt2
+404      GET       42l      157w     1914c http://ledger.thm/nul
+404      GET       42l      157w     1929c http://ledger.thm/aspnet_client/lpt1
+404      GET       42l      157w     1929c http://ledger.thm/aspnet_client/lpt2
+404      GET       42l      157w     1914c http://ledger.thm/prn
+404      GET       42l      157w     1928c http://ledger.thm/aspnet_client/nul
+404      GET       42l      157w     1928c http://ledger.thm/aspnet_client/prn
+301      GET        2l       10w      166c http://ledger.thm/aspnet_client/system_web => http://ledger.thm/aspnet_client/system_web/
+404      GET       42l      157w     1939c http://ledger.thm/aspnet_client/system_web/aux
+404      GET       42l      157w     1940c http://ledger.thm/aspnet_client/system_web/com3
+404      GET       42l      157w     1940c http://ledger.thm/aspnet_client/system_web/com4
+404      GET       42l      157w     1940c http://ledger.thm/aspnet_client/system_web/com1
+404      GET       42l      157w     1940c http://ledger.thm/aspnet_client/system_web/com2
+404      GET       42l      157w     1939c http://ledger.thm/aspnet_client/system_web/con
+404      GET       42l      157w     1940c http://ledger.thm/aspnet_client/system_web/lpt1
+404      GET       42l      157w     1940c http://ledger.thm/aspnet_client/system_web/lpt2
+404      GET       42l      157w     1939c http://ledger.thm/aspnet_client/system_web/nul
+404      GET       42l      157w     1939c http://ledger.thm/aspnet_client/system_web/prn
+[####################] - 80s    61455/61455   0s      found:34      errors:0      
+[####################] - 38s    20482/20482   542/s   http://ledger.thm/ 
+[####################] - 37s    20482/20482   547/s   http://ledger.thm/aspnet_client/ 
+[####################] - 42s    20482/20482   490/s   http://ledger.thm/aspnet_client/system_web/   
+```
+
+> Feroxbuster /netasp_client/web_service/
+> If the found directory gives 403 error, it exists. The found folder will tell us the exact version this service uses.
+
+
+```
+feroxbuster -u http://ledger.thm/aspnet_client/system_web/ -w iis.txt                                
+                                                                                                                                                                   
+ ___  ___  __   __     __      __         __   ___
+|__  |__  |__) |__) | /  `    /  \ \_/ | |  \ |__
+|    |___ |  \ |  \ | \__,    \__/ / \ | |__/ |___
+by Ben "epi" Risher 🤓                 ver: 2.13.1
+───────────────────────────┬──────────────────────
+ 🎯  Target Url            │ http://ledger.thm/aspnet_client/system_web
+ 🚩  In-Scope Url          │ ledger.thm
+ 🚀  Threads               │ 50
+ 📖  Wordlist              │ iis.txt
+ 👌  Status Codes          │ All Status Codes!
+ 💥  Timeout (secs)        │ 7
+ 🦡  User-Agent            │ feroxbuster/2.13.1
+ 💉  Config File           │ /etc/feroxbuster/ferox-config.toml
+ 🔎  Extract Links         │ true
+ 🏁  HTTP methods          │ [GET]
+ 🔃  Recursion Depth       │ 4
+───────────────────────────┴──────────────────────
+ 🏁  Press [ENTER] to use the Scan Management Menu™
+──────────────────────────────────────────────────
+404      GET       29l       95w     1245c Auto-filtering found 404-like response and created new filter; toggle off with --dont-filter
+301      GET        2l       10w      166c http://ledger.thm/aspnet_client/system_web => http://ledger.thm/aspnet_client/system_web/
+301      GET        2l       10w      176c http://ledger.thm/aspnet_client/system_web/4_0_30319 => http://ledger.thm/aspnet_client/system_web/4_0_30319/
+[####################] - 2s        24/24      0s      found:2       errors:0      
+[####################] - 1s         8/8       12/s    http://ledger.thm/aspnet_client/system_web/ 
+[####################] - 0s         8/8       23/s    http://ledger.thm/aspnet_client/system_web/4_0_30319/    
+```
+
+> iis.txt
+
+```text
+1_0_3705
+1_1_4322
+2_0_50727
+4_0_30319
+4_5_22
+crystalreportviewers13
+crystalreportviewers14
+```
+
+## AI Answer:
+
+```
+It Narrows Down the .NET Framework VersionWhat it means: The application is running on .NET Framework 4.0, 4.5, 4.6, 4.7, or 4.8. All of these versions utilize the exact same CLR 4.0 core engine and share the v4.0.30319 folder naming convention.
+It Highlights Exploitation and Vulnerability Testing VectorsBecause you know the app relies on the .NET 4.x ecosystem, you can prioritize specific penetration testing techniques:
+Sub-Directory Fuzzing: The existence of this folder means you should immediately fuzz for standard sub-assets. A common example is testing for Crystal Reports integration by fuzzing /aspnet_client/system_web/4_0_30319/crystalreportviewers13/, which often leaks javascript files or application layouts.
+Insecure Deserialization: This environment is susceptible to classic modern .NET deserialization flaws. 
+```
+
 ---
 
 ## Information Gathering
@@ -298,3 +419,34 @@ LDAP        10.130.181.194  389    LABYRINTH        LILY_LYONS                  
 LDAP        10.130.181.194  389    LABYRINTH        WALDO_BOYER                   2023-05-30 05:46:51 0                                                                                                                                                                                                                                 
 ```
 
+> Enumeration with low-privileged users:
+
+```shell
+┌──(root㉿kali)-[~]
+└─# nxc smb ledger.thm -u 'IVY_WILLIS' -p 'CHANGEME2023!'  --shares
+SMB         10.130.181.194  445    LABYRINTH        [*] Windows 10 / Server 2019 Build 17763 x64 (name:LABYRINTH) (domain:thm.local) (signing:True) (SMBv1:None) (Null Auth:True)                                                                                                                                                     
+SMB         10.130.181.194  445    LABYRINTH        [+] thm.local\IVY_WILLIS:CHANGEME2023! 
+SMB         10.130.181.194  445    LABYRINTH        [*] Enumerated shares
+SMB         10.130.181.194  445    LABYRINTH        Share           Permissions     Remark
+SMB         10.130.181.194  445    LABYRINTH        -----           -----------     ------
+SMB         10.130.181.194  445    LABYRINTH        ADMIN$                          Remote Admin
+SMB         10.130.181.194  445    LABYRINTH        C$                              Default share
+SMB         10.130.181.194  445    LABYRINTH        IPC$            READ            Remote IPC
+SMB         10.130.181.194  445    LABYRINTH        NETLOGON        READ            Logon server share 
+SMB         10.130.181.194  445    LABYRINTH        SYSVOL          READ            Logon server share 
+                                                                                                                                                                   
+┌──(root㉿kali)-[~]
+└─# nxc smb ledger.thm -u 'SUSANNA_MCKNIGHT' -p 'CHANGEME2023!'  --shares
+SMB         10.130.181.194  445    LABYRINTH        [*] Windows 10 / Server 2019 Build 17763 x64 (name:LABYRINTH) (domain:thm.local) (signing:True) (SMBv1:None) (Null Auth:True)                                                                                                                                                     
+SMB         10.130.181.194  445    LABYRINTH        [+] thm.local\SUSANNA_MCKNIGHT:CHANGEME2023! 
+SMB         10.130.181.194  445    LABYRINTH        [*] Enumerated shares
+SMB         10.130.181.194  445    LABYRINTH        Share           Permissions     Remark
+SMB         10.130.181.194  445    LABYRINTH        -----           -----------     ------
+SMB         10.130.181.194  445    LABYRINTH        ADMIN$                          Remote Admin
+SMB         10.130.181.194  445    LABYRINTH        C$                              Default share
+SMB         10.130.181.194  445    LABYRINTH        IPC$            READ            Remote IPC
+SMB         10.130.181.194  445    LABYRINTH        NETLOGON        READ            Logon server share 
+SMB         10.130.181.194  445    LABYRINTH        SYSVOL          READ            Logon server share 
+```
+
+> Looks like we have read permission over SYSVOL share, which is a huge security risk. Let's read its contents.
