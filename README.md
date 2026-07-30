@@ -6,7 +6,7 @@ Welcome to my repository dedicated to Capture The Flag (CTF) writeups and securi
 
 ## The CTFs include:
 
-Pretty much most of the things. Web Application, Active Directory, Linux, Windows, Blackbox, Graybox, Whitebox penetration testing practices etc. For the record, I do NOT want to document many of the easy level or low-hanging fruit type of labs. Instead I want to be focusing on finishing & documenting very hard or medium-hard level challenges. Enjoy reading them!  
+Pretty much most of the things. Web Application, Active Directory, Linux, Windows, Blackbox, Graybox, Whitebox penetration testing practices etc. For the record, I do NOT want to document many easy level or low-hanging fruit type of labs. Instead I want to be focusing on finishing & documenting very hard or medium-hard level challenges. Enjoy reading them!  
 
 ---
 
