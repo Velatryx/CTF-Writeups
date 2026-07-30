@@ -188,3 +188,11 @@ Host script results:
 |   date: 2026-07-30T15:18:20
 |_  start_date: N/A
 ```
+
+---
+
+## Information Gathering
+
+> Domain Name (FQDN): `labyrinth.thm.local`
+> IP Address: `10.130.181.194`
+> Certificate Authority: `thm-LABYRINTH-CA`
