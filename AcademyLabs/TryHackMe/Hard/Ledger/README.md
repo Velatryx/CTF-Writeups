@@ -701,4 +701,4 @@ THM{THE_BYPASS_IS_CERTIFIED!}
 
 ---
 
-My thoughts: This lab was not actually that hard. All we needed was enumerating everything, which takes time and patience, and it makes it very close to real-world environment I believe. Again, I am not a AD nerd, so I did not specifically enjoy while suffering through some stages, I think doing this pushed me harder to learn new things about AD Exploitation. So I will take it :D
+My thoughts: This lab was not actually that hard. All we needed was enumerating everything, which takes time and patience, and it makes it very close to real-world environment I believe. Again, I am not an AD nerd, so I did not specifically enjoy while suffering through some stages, I think doing this pushed me harder to learn new things about AD Exploitation. So I will take it :D
