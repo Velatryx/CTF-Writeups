@@ -504,7 +504,8 @@ Certipy v5.0.4 - by Oliver Lyak (ly4k)
 
 > Simple Explanation; From what I understand, AD CS (Active Directory Certificate Services) is like the Passport Office, where users can login to Active Directory by showing Digital Certificates instead of entering password every single time. Since we can request a certificate in behalf of someone else (Like a more privileged user: Administrator) as a low-privileged user, this can be turned into a privilege escalation vector.
 
-> AI Explanation: 
+> AI Explanation:
+
 Breaking down the command in plain English:
 
     -u SUSANNA_MCKNIGHT -p 'CHANGEME2023!': You provided normal, low-level user credentials to log in.
@@ -514,6 +515,7 @@ Breaking down the command in plain English:
     -enabled: "Only show me rules (templates) that are currently active."
 
     -vulnerable: "Filter out the safe stuff—only highlight configurations that have known security flaws."
+    
 Why Did We Do It?
 
 In Windows networks, administrators create Certificate Templates (think of them like pre-printed application forms for different types of badges—e.g., "Web Server Badge", "Standard User Badge", "VPN Access Badge").
