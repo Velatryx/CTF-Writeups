@@ -1,5 +1,7 @@
 ## Burg3r Bytes
 
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/TryHack3M%3A%20Burg3r%20Bytes/Images/burg3r.png)
+
 Room Description: They say these burgers are worth every penny. Can you buy one?
 
 > Scenario: 
