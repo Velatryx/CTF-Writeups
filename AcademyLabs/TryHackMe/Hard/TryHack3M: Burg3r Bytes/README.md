@@ -238,7 +238,7 @@ file received and saved as server.crt!
 
 > With the modified script that supports both download and upload, I was able to perform both functionalities. Find the script [here](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/TryHack3M%3A%20Burg3r%20Bytes/client_py.py)
 
-> Python script usage (upload/download): python3 client_py.py '<ip>' '<port>' '<mode>' '<DIRECTORY/FILE>'
+> Python script usage (upload/download): python3 client_py.py -ip- -port- -mode- <DIRECTORY/FILE>
 
 > Attacker Kali machine:
 
