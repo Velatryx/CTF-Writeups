@@ -300,12 +300,10 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
 crystalreportviewers13
 crystalreportviewers14
 ```
-
-## AI Answer:
+ 
 
 ```
 It Narrows Down the .NET Framework VersionWhat it means: The application is running on .NET Framework 4.0, 4.5, 4.6, 4.7, or 4.8. All of these versions utilize the exact same CLR 4.0 core engine and share the v4.0.30319 folder naming convention.
-It Highlights Exploitation and Vulnerability Testing VectorsBecause you know the app relies on the .NET 4.x ecosystem, you can prioritize specific penetration testing techniques:
 Sub-Directory Fuzzing: The existence of this folder means you should immediately fuzz for standard sub-assets. A common example is testing for Crystal Reports integration by fuzzing /aspnet_client/system_web/4_0_30319/crystalreportviewers13/, which often leaks javascript files or application layouts.
 Insecure Deserialization: This environment is susceptible to classic modern .NET deserialization flaws. 
 ```
@@ -503,10 +501,6 @@ Certipy v5.0.4 - by Oliver Lyak (ly4k)
 ```
 
 > Simple Explanation; From what I understand, AD CS (Active Directory Certificate Services) is like the Passport Office, where users can login to Active Directory by showing Digital Certificates instead of entering password every single time. Since we can request a certificate in behalf of someone else (Like a more privileged user: Administrator) as a low-privileged user, this can be turned into a privilege escalation vector.
-
-> AI Explanation:
-
-Breaking down the command in plain English:
 
     -u SUSANNA_MCKNIGHT -p 'CHANGEME2023!': You provided normal, low-level user credentials to log in.
 
