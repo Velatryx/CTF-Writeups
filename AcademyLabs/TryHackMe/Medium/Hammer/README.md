@@ -397,7 +397,33 @@ if __name__ == "__main__":
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Hammer/Images/Screenshot%20From%202026-07-31%2017-25-46.png)
 
+> This key is not the actual secret, rather it looks like a hash, but we can still use this by replacing it with kid value.
+
 ```shell
 cat /home/kali/Downloads/188ade1.key 
 [redacted]
 ```
+
+> So I used `jwt.io` for forging my own JWT token. I tested if the secret matches with the signature, but no.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Hammer/Images/Screenshot%20From%202026-07-31%2017-57-39.png)
+
+> But still, we can manipulate the kid value, and actually can guess the location of the .key file we found like `/var/www/html/.key`. Let's forge the JWT, changing the `role`, `kid` and `secret` values to ours.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Hammer/Images/Screenshot%20From%202026-07-31%2018-01-16.png)
+
+> Now let's change the JWT token, and test if we can execute any other command like `id`.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Hammer/Images/Screenshot%20From%202026-07-31%2018-01-46.png)
+
+> SUCCESS! Now we can actually read the final flag inside /home/ubuntu/flag.txt:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Hammer/Images/Screenshot%20From%202026-07-31%2018-02-59.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Hammer/Images/Screenshot%20From%202026-07-31%2018-04-37.png)
+
+---
+
+## My thoughts:
+
+> I really liked this lab, it wasn't just another "Fuzz directories, brute-force a user password, bypass command injection blacklist". We had to fuzz according to directory architecture, find an existing user, and reset its password to login. It did not just stop at letting us guess the OTP codes, it required bypassing the rate-limiting measures, kid and role value manipulations for privilege escalation. 
