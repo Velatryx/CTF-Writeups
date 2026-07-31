@@ -1,4 +1,4 @@
-## Burg3r Bytes
+## TryHack3M: Burg3r Bytes
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/TryHack3M%3A%20Burg3r%20Bytes/Images/burg3r.png)
 
