@@ -1,4 +1,4 @@
-## Tryhackme - Hammer Writeup
+## Hammer Writeup
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Hammer/Images/hammer.png)
 
