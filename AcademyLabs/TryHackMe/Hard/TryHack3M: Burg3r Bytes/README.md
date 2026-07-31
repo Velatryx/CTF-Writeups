@@ -22,8 +22,10 @@ Room Description: They say these burgers are worth every penny. Can you buy one?
 ## Summary
 - **Target IP:** 10.130.128.174
 - **OS:** Linux (Ubuntu)
-- **Vulnerabilities:** 
+- **Vulnerabilities:** Race Condition, SSTI, insecure direct object reference / arbitrary file write via the custom TFTP implementation
 
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/TryHack3M%3A%20Burg3r%20Bytes/Images/Screenshot%20From%202026-08-01%2002-18-58.png)
 
 ---
 
