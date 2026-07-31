@@ -6,17 +6,19 @@ Room Description: Use your exploitation skills to bypass authentication mechanis
 
 > With the Hammer in hand, can you bypass the authentication mechanisms and get on the system?
 
-## Summary
-- **Target IP:** 10.128.136.208
-- **OS:** Linux (Ubuntu)
-- **Vulnerabilities:** Information Disclosure (Logs), Rate-Limit Bypass via Session Rotation, Arbitrary Key Lookup / JWT Token Forgery (RCE)
-
 ---
 
 ## Objectives:
 
 1. What is the flag value after logging in to the dashboard?
 2. What is the content of the file /home/ubuntu/flag.txt?
+
+---
+
+## Summary
+- **Target IP:** 10.128.136.208
+- **OS:** Linux (Ubuntu)
+- **Vulnerabilities:** Information Disclosure (Logs), Rate-Limit Bypass via Session Rotation, Arbitrary Key Lookup / JWT Token Forgery (RCE)
 
 ---
 
