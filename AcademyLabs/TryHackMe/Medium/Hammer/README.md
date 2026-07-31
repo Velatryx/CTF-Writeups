@@ -389,7 +389,7 @@ if __name__ == "__main__":
 
 ---
 
-## Remote Code Execution (RCE): JWT Forgery - Sensitive Key Exposure
+## Remote Code Execution (RCE) via Privilege Escalation: JWT Forgery - Kid and Role header manipulation 
 
 > At first I thought there was a blacklist or a filter which prevented some commands, but looks like it's tied to our privilege. Because I cannot execute any command except for `ls`, even with advanced shell globbing techniques I came up with. Also there's this annoying script or something that keeps you logging out of the session by setting PHPSESSID=deleted :D. So I started analyzing the requests, and it seems we have to attack the JWT for privilege escalation. Then I found this key:
 
