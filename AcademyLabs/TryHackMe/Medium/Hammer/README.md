@@ -386,3 +386,18 @@ if __name__ == "__main__":
 > Logging in:
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Hammer/Images/Screenshot%20From%202026-07-31%2017-02-25.png)
+
+---
+
+## Remote Code Execution (RCE): Command Injection
+
+> At first I thought there was a blacklist or a filter which prevented some commands, but looks like it's tied to our privilege. Because I cannot execute any command except for `ls`, even with advanced shell globbing techniques I came up with. Also there's this annoying script or something that keeps you logging out of the session by setting PHPSESSID=deleted :D. So I started analyzing the requests, and it seems we have to attack the JWT for privilege escalation. Then I found this key:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Hammer/Images/Screenshot%20From%202026-07-31%2017-24-40.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Hammer/Images/Screenshot%20From%202026-07-31%2017-25-46.png)
+
+```shell
+cat /home/kali/Downloads/188ade1.key 
+56058354efb3daa97ebab00fabd7a7d7
+```
