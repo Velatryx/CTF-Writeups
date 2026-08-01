@@ -319,4 +319,4 @@ root@ip-10-130-128-174:~#
 
 ---
 
-> Did he say his last name is Burger?
+> Did he just say his last name is Burger?
