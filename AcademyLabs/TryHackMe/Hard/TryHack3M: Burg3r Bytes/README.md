@@ -153,7 +153,7 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
 
 > First flag:
 
-![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/TryHack3M%3A%20Burg3r%20Bytes/Images/Screenshot%20From%202026-07-31%2023-47-26.png)
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/TryHack3M%3A%20Burg3r%20Bytes/Images/Screenshot%20From%202026-07-31%2023-55-57.png)
 
 ---
 
