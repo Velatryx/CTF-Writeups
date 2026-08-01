@@ -319,5 +319,4 @@ root@ip-10-130-128-174:~#
 
 ---
 
-> PWNED!
-
+> Did he say his last name is Burger?
