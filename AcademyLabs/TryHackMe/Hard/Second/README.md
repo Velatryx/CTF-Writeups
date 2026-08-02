@@ -6,12 +6,21 @@
 
 > *"Being second isn't such a bad thing, but not in this case."*
 
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2001-54-04.png)
+
 ---
 
 ## Objectives
 
 * What is the user flag?
 * What is the root flag?
+
+---
+
+## Summary
+- **Target IP:** 10.130.172.231
+- **OS:** Linux (Ubuntu)
+- **Vulnerabilities:** Second-Order SQLi, Second-Order SSTI (Blacklist Bypass), Weak File Permissions (Writable /etc/hosts leads to phishing & credential harvesting)
 
 ---
 
@@ -282,8 +291,105 @@ smokey@ip-10-130-172-231:/tmp$ ls -l shell.sh
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2000-35-39.png)
 
-> There's a note and the user.txt. How ironic, Smokey giving security advices :D
+> There's a note and the user.txt. How ironic, Smokey giving security advices :D But seriously, he said he's going to check, implying we might have to trick smokey to click or do something that will get us a credential or session id.
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2000-38-23.png)
 
 > The hint said: "How can one capture the progress check? Only a shark would know." Sounds obvious that capturing internet packets will help us in privilege escalation. 
+
+---
+
+## Privilege Escalation
+
+> I started digging in the files, and found that an internal service on port 8080 was running. I used ssh tunneling to view the website running on port 8080 again. Well, it asked for credentials, and the credentials I harvested until now were no use.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2000-57-05.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2001-09-35.png)
+
+
+> But when I searched for writable files, something catched my eye: /etc/hosts. That's odd, because this file should be protected, as an attacker could manipulate this file to lure victims to malicious sites. Maybe if we change the ip address that Smokey logs in to, we can capture his credentials via wireshark. The website traffic does not have encryption as it uses http, so let's try it!
+
+```shell
+hazel@ip-10-130-172-231:/etc/apache2/sites-available$ find / -type f -writable 2>/dev/null | grep etc/hosts
+/etc/hosts
+hazel@ip-10-130-172-231:/etc/apache2/sites-available$ 
+```
+
+> Let's change its contents.
+
+> Before
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2001-15-36.png)
+
+> After
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2001-18-50.png)
+
+
+> Now, I started listening on port 8080 on another tab, and got hit with GET requests. Looks like Smokey can't reach the site, so he cannot make the POST requests. Let's add the usual `index.html` he is used to :)
+
+```shell
+smokey@ip-10-130-172-231:~$ curl 127.0.0.1:8080
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body{ font: 14px sans-serif; }
+        .wrapper{ width: 360px; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <h2>User Login</h2>
+        <p>Please fill in your credentials to login.</p>
+
+
+        <form action="/index.php" method="post">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" class="form-control " value="">
+                <span class="invalid-feedback"></span>
+            </div>    
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" class="form-control ">
+                <span class="invalid-feedback"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" class="btn btn-primary" value="Login">
+            </div>
+        </form>
+    </div>
+</body>
+</html>
+```
+
+```
+┌──(root㉿kali)-[~/venv]
+└─# micro index.html
+```
+
+> Now waiting for Smokey to start checking on Hazel's work.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2001-33-26.png)
+
+> After waiting for some time, he made a POST request that leaked his credentials! Let's use it to login to root's account.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2001-49-11.png)
+
+> Final flag!
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2001-53-17.png)
+
+> FINISHED! As second?
+
+---
+
+## My thoughts
+
+> Okay, I won't lie, this was tough. Maybe after finishing the writeup it may not seem like, but while solving it, I kept running into same problems, during waf, and some deadends. But it was really greatly designed. Everything was put well together, and actually requires brain, not just some blind tool usage. The harder it made things for me, the more satisfaction I got after completing a stage. Happy Hacking! :) 
