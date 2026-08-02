@@ -97,7 +97,7 @@ PORT     STATE SERVICE REASON         VERSION
 
 > Oh, it gave a 500 error. Which is good news!
 
-![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-02%2021-46-21.png)
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-01%2023-15-58.png)
 
 > So after some trial and error, I found the column numbers etc. If we do `' UNION SELECT 1,2,3,4-- -` and whatever the number is shown as the username, that column expects a string. Then I wrote a custom script that automates registering a user with a unique email, username (which includes our SQL payloads), and password, and then uses the word count functionality that dumps information from the database. Please find the script [here](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/dump.py)
 
