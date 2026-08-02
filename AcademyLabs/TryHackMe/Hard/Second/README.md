@@ -10,8 +10,8 @@
 
 ## Objectives
 
-* [*] **User Flag:** `user.txt`
-* [*] **Root Flag:** `root.txt`
+* What is the user flag?
+* What is the root flag?
 
 ---
 
@@ -33,13 +33,6 @@ rustscan -a second.thm --ulimit 5000 -- -sCV -O
 | **`22/tcp`** | `OPEN` | **SSH** | OpenSSH 8.2p1 Ubuntu 4ubuntu0.13 |
 | **`8000/tcp`** | `OPEN` | **HTTP** | Werkzeug httpd 2.0.3 (Python 3.8.10) |
 
-#### Discovered endpoints
-
-```
-/register
-/login
-/logout
-```
 
 > Output
 
@@ -55,6 +48,14 @@ PORT     STATE SERVICE REASON         VERSION
 | http-methods: 
 |_  Supported Methods: GET HEAD OPTIONS
 |_http-title: Login
+```
+
+#### Discovered endpoints
+
+```
+/register
+/login
+/logout
 ```
 
 ---
