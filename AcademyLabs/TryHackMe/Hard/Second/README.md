@@ -89,7 +89,7 @@ PORT     STATE SERVICE REASON         VERSION
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-02%2021-46-21.png)
 
-> So after some trial and error, I learned the dbms, column count, etc. Then I wrote a custom script that automates registering a user with a unique email, username (which includes our SQL payloads), and password, and then uses the word count functionality that dumps information from the database. Please find the script [here](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/dump.py)
+> So after some trial and error, I found the column numbers etc. If we do `' UNION SELECT 1,2,3,4-- -` and whatever the number is shown as the username, that column expects a string. Then I wrote a custom script that automates registering a user with a unique email, username (which includes our SQL payloads), and password, and then uses the word count functionality that dumps information from the database. Please find the script [here](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/dump.py)
 
 > Using the python script, I found a user and his password: smokey.
 
@@ -215,7 +215,7 @@ mysql> select * from users;
 mysql> 
 ```
 
-> Then, I found a directory under `/opt/app/` that are owned by hazel which looks like another website.
+> Then, I found a directory under `/opt/app/` that are owned by hazel which looks like another website. You can find the app.py source code [here](https://github.com/Velatryx/CTF-Writeups/tree/main/AcademyLabs/TryHackMe/Hard/Second/app.py)
 
 ```shell
 smokey@ip-10-130-169-249:/var/www/dev_site$ find / -user hazel 2>/dev/null
@@ -238,4 +238,6 @@ drwxr-xr-x 2 hazel hazel 4096 Mar  2  2022 templates
 ---
 
 ## Second-Order SSTI (Server Side Template Injection)
+
+> As shown in the source code, it logs in and uses mysql for username and password query during registration and login. If you login with a username that contains the blacklisted strings: `config`,`self`,`_`,`"` , it will print "WAF test". So we need to bypass this and achieve RCE.
 
