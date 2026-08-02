@@ -240,5 +240,16 @@ drwxr-xr-x 2 hazel hazel 4096 Mar  2  2022 templates
 
 ## Second-Order SSTI (Server Side Template Injection)
 
-> As shown in the source code, it logs in and uses mysql for username and password query during registration and login. If you login with a username that contains the blacklisted strings: `config`,`self`,`_`,`"` , it will print "WAF test". So we need to bypass this and achieve RCE.
+> As shown in the source code, it logs in and uses mysql for username and password query during registration and login. If you login with a username that contains the blacklisted strings: `config`,`self`,`_`,`"` , it will print "WAF test". So we need to bypass this and achieve RCE. For better understanding, and ease of usage, I learned that we can actually use ssh tunneling to interact with the internal web server on port 5000
 
+```shell
+ssh -L 5000:127.0.0.1:5000 smokey@second.thm
+```
+
+> I registered a username with `{{ 7*7 }}` and logged in
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2000-01-47.png)
+
+> It works
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Second/Images/Screenshot%20From%202026-08-03%2000-01-56.png)
