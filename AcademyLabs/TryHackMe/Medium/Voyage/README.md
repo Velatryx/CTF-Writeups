@@ -246,6 +246,9 @@ ssh -L 5000:192.168.100.12:5000 root@voyage.thm -p  2222
 
 ## Insecure Deserialization & RCE: Pickle
 
+**About Pickle Serialization:** 
+> Python's pickle module serializes objects using a bytecode-based protocol. When deserializing, it executes the __reduce__ method of any class embedded in the payload, which can return arbitrary system commands. Unlike JSON, there is no safe way to deserialize untrusted Pickle data — the deserialization itself is the execution. The session cookie here was base64/hex-encoded Pickle data trusted directly by the server, meaning controlling the cookie value equals RCE.
+
 > I noticed after logging in, we are assigned a session with value `8004952a000000000000007d94288c0475736572948c097b7b20372a37207d7d948c07726576656e7565948c05383530303094752e`. That seemed random at first, but it was revealed that this hex string is a serialized Python object using pickle. Now, the pickle() itself is unsafe, as if the source is unverified, it can lead to insecure deserialization vulnerability. I created an exact python code that reproduces this hex string, and changed value to an RCE payload.
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2020-59-27.png)
