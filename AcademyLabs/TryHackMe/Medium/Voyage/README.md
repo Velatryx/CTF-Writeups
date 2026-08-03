@@ -8,6 +8,8 @@ Room Description: Chain multiple vulnerabilities to gain control of a system.
 
 > Sometimes in a pentest, you get root access very quickly. But is it the real root or just a container? The voyage might still be going on.
 
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2022-09-11.png)
+
 ---
 
 ## Objectives
@@ -20,7 +22,7 @@ Room Description: Chain multiple vulnerabilities to gain control of a system.
 ## Summary
 - **Target IP:** 10.128.162.162
 - **OS:** Linux (Ubuntu)
-- **Vulnerabilities:**
+- **Vulnerabilities:** Information Disclosure (CVE), Pickle Insecure Deserialization (RCE), Security Misconfiguration (CAP_SYS_MODULE) leads to Host Pwnage
 
 | Port | State | Service | Service Version / Info |
 | --- | --- | --- | --- |
@@ -248,3 +250,105 @@ ssh -L 5000:192.168.100.12:5000 root@voyage.thm -p  2222
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2020-59-27.png)
 
+> Generating the serialized object with a custom python script. Find it [here](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/exploit-pickle.py)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2021-32-47.png)
+
+
+## Reverse Shell & Lateral Movement
+
+> Then I changed the session parameter to malicious one, and reloaded the tab:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2021-29-02-1.png)
+
+> We got the reverse shell on port 4444, and the first flag (user.txt)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2021-33-22.png)
+
+---
+
+## Privilege Escalation & Docker Escape
+
+> During the local enumeration, I found a dangerous cap given to current user: `CAP_SYS_MODULE`
+
+```shell
+capsh --print
+```
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2021-52-07.png)
+
+**About SYS_MODULE capability:**
+
+> Shared Kernel Architecture: Unlike Virtual Machines, which run their own isolated guest kernels, containers share the exact same underlying host kernel. Isolation is only enforced via user-space boundaries like namespaces, cgroups, and seccomp filters.
+
+> Ring 0 Execution: The CAP_SYS_MODULE capability grants a process the privilege to invoke init_module() or finit_module() system calls. This allows you to compile and load custom Loadable Kernel Modules (.ko files) directly into Ring 0 (kernel space).
+
+> Bypassing Boundaries: Because the kernel governs the entire system (including all containers and the host itself), executing code inside the kernel completely shatters container isolation. With a malicious kernel module, an attacker can:Disable or modify namespace boundaries.
+
+> 1. Access host filesystems and process trees unrestricted. 2. Spawn a root shell directly on the underlying host machine. 3. Install stealth backdoors or rootkits.
+
+
+**For this privEsc to work, a few conditions must be satisfied**
+
+- **1. Direct Root Privileges (Root UID)**
+
+- **2. cap_sys_module present**
+
+- **3. The host kernel must not have module loading entirely disabled (/proc/sys/kernel/modules_disabled must be 0)** 
+
+
+### Exploit Development: Loading malicious module leads to host Pwnage
+
+> To bridge the gap from container user-space to host kernel-space (Ring 0), a Loadable Kernel Module was written to invoke a reverse shell using the kernel's call_usermodehelper API. Find the malicious `C` file [here](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/exploit.c)
+
+> Write it into a file
+
+```bash
+root@d221f7bc7bf8:~# nano exploit.c
+```
+
+! > Running Kernel: 6.8.0-1031-aws (uname -r). Available Headers: 6.8.0-1030-aws (found in /lib/modules/ and /usr/src/)
+
+! > Because the target kernel version lacked direct headers, the module was compiled against the existing 6.8.0-1030-aws headers, and the compiled binary's vermagic metadata string was patched to match the running kernel version.
+
+
+> Then Create the Makefile
+
+```bash
+printf "obj-m += exploit.o\nall:\n\tmake -C /lib/modules/6.8.0-1030-aws/build M=\$(PWD) modules\nclean:\n\tmake -C /lib/modules/6.8.0-1030-aws/build M=\$(PWD) clean\n" > Makefile
+```
+
+> Compile it
+
+```bash
+make
+```
+
+> Patch the Vermagic String: 
+Since both version strings (6.8.0-1030-aws and 6.8.0-1031-aws) are exactly 13 characters long, a simple binary byte-replacement via Python successfully bypassed the kernel version check.
+
+```bash
+root@d221f7bc7bf8:~# python3 -c '
+with open("exploit.ko", "rb") as f:
+    content = f.read()
+content = content.replace(b"6.8.0-1030-aws", b"6.8.0-1031-aws")
+with open("exploit.ko", "wb") as f:
+    f.write(content)
+print("[+] Vermagic patched successfully!")
+'
+[+] Vermagic patched successfully!
+```
+
+> Started listening on port 1234 on kali machine, then inserted the malicious module into kernel.
+
+```bash
+insmod exploit.ko
+```
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2022-07-22.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2022-06-47.png)
+
+---
+
+> Final Thoughts: In my opinion, this lab was not *Exactly* Medium level. It required some advanced stuff compared to a typical average one, in my opinion. Still, I would not exactly label it as 'Hard'. Anyways, it was fun. See you in another writeup, happy hacking!
