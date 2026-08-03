@@ -22,6 +22,7 @@ Personal writeups from TryHackMe's AcademyLabs. Each one documents my methodolog
 | [Fools Mate, Revenge](Medium/Fools%20Mate%2C%20Revenge/README.md) | Prototype pollution, `__proto__` filter bypass |
 | [Hammer](Medium/Hammer/README.md) | OTP rate-limit bypass (custom script), JWT `kid` header manipulation |
 | [Sequence](Medium/Sequence/README.md) | Stored XSS, SSRF, file upload RCE, Docker escape via docker.sock |
+| [Voyage](Medium/Voyage/README.md) | CVE-2023-23752, Pickle Deserialization RCE, CAP_SYS_MODULE Docker Escape, Kernel Module Loading |
 
 ### 🔴 Hard
 
