@@ -183,7 +183,7 @@ Joomla! 3.7.0 - 'com_fields' SQL Injection                                      
 
 > Endpoints: `/api/index.php/v1/config/application?public=true`; `/api/index.php/v1/users?public=true` 
 
-**To learn more about it, refer to these sources: [CVE-2023-23752 Exploit Github](https://github.com/K3ysTr0K3R/CVE-2023-23752-EXPLOIT), [Secondary](https://github.com/Pushkarup/CVE-2023-23752/tree/main)
+*To learn more about it, refer to these sources:* [CVE-2023-23752 Exploit Github](https://github.com/K3ysTr0K3R/CVE-2023-23752-EXPLOIT), [Secondary](https://github.com/Pushkarup/CVE-2023-23752/tree/main)
 
 > Exploitation of Vulnerable version: Find the [PoC.py here](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/joomla-exploit.py). Author : K3ysTr0K3R/CVE-2023-23752-EXPLOIT
 
