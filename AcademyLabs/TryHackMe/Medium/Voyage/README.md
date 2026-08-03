@@ -162,3 +162,89 @@ http://voyage.thm/tmp/
 Joomla! 3.7.0 - 'com_fields' SQL Injection                                                                                                                                        | php/webapps/42033.txt
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
+
+> Then I found out that this version of `Joomla - 4.2.7` was vulnerable to `CVE-2023-23752`.
+
+**About `CVE-2023-23752`:**
+
+> CVE-2023-23752 is an Improper Access Control / Authentication Bypass vulnerability in the Joomla! Content Management System (CMS). Discovered in February 2023, it allows unauthenticated, remote attackers to access restricted web service endpoints and extract sensitive internal configuration data.
+
+> Vulnerability Type: Improper Access Control (CWE-284) / Information Disclosure
+
+> CVSS v3.1 Score: 5.3 (Medium)
+
+> Affected Versions: Joomla! CMS versions 4.0.0 through 4.2.7
+
+> Patched Version: Joomla! 4.2.8
+
+> Impact: Unauthenticated disclosure of database credentials, system settings, and API secrets.
+
+> Endpoints: `/api/index.php/v1/config/application?public=true`; `/api/index.php/v1/users?public=true` 
+
+**To learn more about it, refer to these sources: [CVE-2023-23752 Exploit Github](https://github.com/K3ysTr0K3R/CVE-2023-23752-EXPLOIT), [Secondary](https://github.com/Pushkarup/CVE-2023-23752/tree/main)
+
+> Exploitation of Vulnerable version: Find the [PoC.py here](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/joomla-exploit.py). Author : K3ysTr0K3R/CVE-2023-23752-EXPLOIT
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2019-46-04.png)
+
+> Manual exploitation:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2019-05-54.png)
+
+---
+
+## Initial Foothold & Docker Escape
+
+> I used the exposed credentials to login as root on port 2222 (SSH)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2019-55-45.png)
+
+> Okay, we are inside a container, and need to escape it somehow. /proc/1/cgroup did not give me anything.
+
+> Capability check: Nothing useful. `capsh --print` echoes the capabilities the user has inside the container. Something like sys_admin capability would have allowed us to mount disk partitions and rwx host files.
+
+```shell
+root@f5eb774507f2:~# capsh --print
+WARNING: libcap needs an update (cap=40 should have a name).
+Current: = cap_chown,cap_dac_override,cap_fowner,cap_setgid,cap_setuid,cap_setpcap,cap_net_bind_service,cap_net_raw,cap_sys_chroot,cap_audit_write+ep
+Bounding set =cap_chown,cap_dac_override,cap_fowner,cap_setgid,cap_setuid,cap_setpcap,cap_net_bind_service,cap_net_raw,cap_sys_chroot,cap_audit_write
+Ambient set =
+Securebits: 00/0x0/1'b0
+ secure-noroot: no (unlocked)
+ secure-no-suid-fixup: no (unlocked)
+ secure-keep-caps: no (unlocked)
+ secure-no-ambient-raise: no (unlocked)
+uid=0(root) euid=0(root)
+gid=0(root)
+groups=0(root)
+Guessed mode: UNCERTAIN (0)
+```
+
+> Then I noticed /root/.bash_history had some hinting commands like nmap. I checked the ip address of local machine, and ran an nmap scan.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2020-18-23.png)
+
+> We found some interesting ports and ip addresses. Let's do an ssh tunnelling to view the website(s) on our kali machine.
+
+```shell
+ssh -L 5000:192.168.100.12:5000 root@voyage.thm -p  2222
+```
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2020-26-05.png)
+
+> Secret Internal Page:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2020-26-43.png)
+
+> This endpoint accepts any credential. Found a classified investor list:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2020-29-36.png)
+
+---
+
+## Insecure Deserialization & RCE: Pickle
+
+> I noticed after logging in, we are assigned a session with value `8004952a000000000000007d94288c0475736572948c097b7b20372a37207d7d948c07726576656e7565948c05383530303094752e`. That seemed random at first, but it was revealed that this hex string is a serialized Python object using pickle. Now, the pickle() itself is unsafe, as if the source is unverified, it can lead to insecure deserialization vulnerability. I created an exact python code that reproduces this hex string, and changed value to an RCE payload.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Voyage/Images/Screenshot%20From%202026-08-03%2020-59-27.png)
+
