@@ -127,6 +127,10 @@ fetch('/api/rooms-available').then(response => response.text()).then(number => {
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-04%2022-55-12.png)
 
+---
+
+## SQL Injection in `?booking_id=` parameter
+
 > There was no way the CTF expected us to brute force a billion ids, so I thought there would be an SQLi. I encoded a basic payload, and sent it. Interestingly, instead of `bad request` response, I got `not found`. Which is a sign that it might be vulnerable to SQLi.
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-04%2023-01-56.png)
@@ -248,3 +252,6 @@ socket.onmessage = e => document.querySelector(".time").innerText = e.data, setI
 
 > Instant Server Delivery: The server calculates the exact formatted date/time for that timezone and instantly sends it back over the same open pipeline (socket.onmessage).
 
+> Aside from this, I noticed a WebSocket, where the client and server constantly exchanged data. Client sends location, and Server sends the time, which is printed later on. This happens every second. So I intercepted the request, and started messing with it.
+
+![image](
