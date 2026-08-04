@@ -75,5 +75,5 @@ PORT     STATE SERVICE REASON         VERSION
 
 [!] > ELANLM is an IANA-assigned service name tied to port 4346 on TCP, intended for secure communication and data exchange between devices on a local network. In practice, this is the kind of listener you are more likely to keep inside a trusted segment than expose to the internet.
 
-[!] > That matters because anything handling device-to-device coordination or internal data exchange can become an unnecessary attack surface when it is reachable beyond the LAN. On business networks, the right question is usually whether the host and the service still belong in the workflow, not whether outside users need direct access. (SOURCE: [Port Lookup 4346](https://portlookup.com/port-4346/)
+[!] > That matters because anything handling device-to-device coordination or internal data exchange can become an unnecessary attack surface when it is reachable beyond the LAN. On business networks, the right question is usually whether the host and the service still belong in the workflow, not whether outside users need direct access. (SOURCE: [Port Lookup 4346](https://portlookup.com/port-4346/))
 
