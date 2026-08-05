@@ -27,10 +27,10 @@ Investigate the websites of the 'Ton Hotel and see if you can find anything that
 * **Target IP:** 10.130.191.50 / `kitchen.thm`
 * **OS:** Linux (Ubuntu)
 * **Vulnerabilities Identified:**
-* **SQL Injection (SQLi):** Unsanitized input in the `booking_key` (`booking_id`) parameter on `/api/booking-info` allowing arbitrary database queries (SQLite).
-* **Command Injection (RCE):** Unsanitized WebSocket timezone payload processing in the `/ws` handler allowing remote shell command execution.
-* **Plaintext Credential Exposure:** Sensitive user credentials stored in readable database tables (`email_access`), hidden configuration files (`.dad`), and embedded image data.
-* **Sudo Misconfiguration (Privilege Escalation):** Overly permissive `sudoers` policy allowing execution of `/usr/sbin/mount.nfs` without mount flag restrictions.
+    * **SQL Injection (SQLi):** Unsanitized input in the `booking_key` (`booking_id`) parameter on `/api/booking-info` allowing arbitrary database queries (SQLite).
+    * **Command Injection (RCE):** Unsanitized WebSocket timezone payload processing in the `/ws` handler allowing remote shell command execution.
+    * **Plaintext Credential Exposure:** Sensitive user credentials stored in readable database tables (`email_access`), hidden configuration files (`.dad`), and embedded image data.
+    * **Sudo Misconfiguration (Privilege Escalation):** Overly permissive `sudoers` policy allowing execution of `/usr/sbin/mount.nfs` without mount flag restrictions.
 
 
 ***Ports Discovered***
