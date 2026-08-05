@@ -2,6 +2,8 @@
 
 Personal writeups from TryHackMe's AcademyLabs. Each one documents my methodology, thought process, and takeaways - not just the commands/tools.
 
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/Images/Screenshot%20From%202026-08-05%2014-58-12.png)
+
 ---
 
 ## Labs
