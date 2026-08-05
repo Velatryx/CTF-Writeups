@@ -33,7 +33,7 @@ Personal writeups from TryHackMe's AcademyLabs. Each one documents my methodolog
 | [Plant Photographer](Hard/Plant%20Photographer/README.md) | SSRF, LFI chaining, Werkzeug debug PIN calculation |
 | [Second](Hard/Second/README.md) | Second-order SQLi, Second-order SSTI (WAF bypass), /etc/hosts phishing |
 | [TryHack3M: Burg3r Bytes](Hard/TryHack3M%3A%20Burg3r%20Bytes/README.md) | Race condition, SSTI, TFTP abuse, Docker escape |
-| [DX2: Hell's Kitchen](Hard/DX2:%20Hell's%20Kitchen/README.md) | SQL Injection, Command Injection | Sudo Misconfiguration |
+| [DX2: Hell's Kitchen](Hard/DX2:%20Hell's%20Kitchen/README.md) | SQL Injection, Command Injection, Sudo Misconfiguration |
 
 ### 🔥 Insane
 
