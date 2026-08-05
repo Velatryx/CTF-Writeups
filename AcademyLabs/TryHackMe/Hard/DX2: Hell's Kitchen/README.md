@@ -244,14 +244,105 @@ socket.onmessage = e => document.querySelector(".time").innerText = e.data, setI
 
 **About WebSockets:** 
 
-> A WebSocket is a communication protocol that provides a persistent, full-duplex (two-way) connection between a web browser (client) and a server over a single TCP connection.
+[*]> A WebSocket is a communication protocol that provides a persistent, full-duplex (two-way) connection between a web browser (client) and a server over a single TCP connection.
 
-> Unlike traditional HTTP requests—where the client must always initiate a request and wait for the server to reply—a WebSocket allows both the client and the server to send data to each other at any time without the overhead of establishing a new connection for every message.
+[*]> Unlike traditional HTTP requests—where the client must always initiate a request and wait for the server to reply—a WebSocket allows both the client and the server to send data to each other at any time without the overhead of establishing a new connection for every message.
 
-> Continuous Time Syncing: Every 1 second, the browser uses the open connection (socket.send(tz)) to tell the server what timezone the user is in.
+[*]> Continuous Time Syncing: Every 1 second, the browser uses the open connection (socket.send(tz)) to tell the server what timezone the user is in.
 
-> Instant Server Delivery: The server calculates the exact formatted date/time for that timezone and instantly sends it back over the same open pipeline (socket.onmessage).
+[*]> Instant Server Delivery: The server calculates the exact formatted date/time for that timezone and instantly sends it back over the same open pipeline (socket.onmessage).
 
-> Aside from this, I noticed a WebSocket, where the client and server constantly exchanged data. Client sends location, and Server sends the time, which is printed later on. This happens every second. So I intercepted the request, and started messing with it.
 
-![image](
+---
+
+## Command Injection & Reverse Shell
+
+> Aside from this, I noticed a WebSocket, where the client and server constantly exchanged data. Client sends location, and Server sends the time, which is printed later on. This happens every second. So I intercepted the request, and started changing what goes to server besides our location :).
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2000-17-06.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2000-17-30.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2000-17-49.png)
+
+> I figured if the server calculates the time based on location, it must be executing server side commands, so it might be a command injection here. Let's try. At first, when I tried `;ls` as a standard command injection attempt, what came from server was completely empty. The response has changed, but it was nothing. So I added a second `;` after the injected command `ls`, and whatever was after the command stopped messing with ours, thus succeeding.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2001-17-48.png)
+
+> Unfortunately, I still could not get most RCE attempts to work. Either the syntax broke, or it failed to execute due to some characters. So I created an index.html which would be the default file to be curled without file name specified over port 80. All I needed to do was placing a reverse shell command inside the index.html file, and fetch it via websocket and get it to execute whatever is inside. However, one thing should be considered. Not all ports are open in the target machine, so we need to choose a common port which is open almost in all servers - 443. Fetching the payload using port 80, and getting a rev shell on port 443.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2010-37-00.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2001-47-54.png)
+
+> Executing the fetched content
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2001-54-17.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2001-47-32.png)
+
+---
+
+## Initial Foothold & Local Enumeration
+
+> dad.txt
+
+```bash
+gilbert@tonhotel:~$ cat dad.txt 
+left you a note by the site -S
+```
+
+> hotel-jobs.txt
+
+```bash
+gilbert@tonhotel:~$ cat hotel-jobs.txt 
+hotel tasks, q1 52
+
+- fix lights in the elevator shaft, flickering for a while now
+- maybe put barrier up in front of shaft, so the addicts dont fall in
+- ask sandra AGAIN why that punk has an account on here (be nice, so good for her to be home helping with admin)
+- remember! 'ilovemydaughter'
+
+buy her something special maybe - she used to like raspberry candy - as thanks for locking the machine down. 'ports are blocked' whatever that means. my smart girl
+
+```
+
+> Enumerating files and directories that Sandra owns, or can rw
+
+```bash
+gilbert@tonhotel:~$ find / -user sandra 2>/dev/null
+/home/sandra
+/home/sandra/user.txt
+/home/sandra/.profile
+/home/sandra/.bash_history
+/home/sandra/note.txt
+/home/sandra/Pictures
+/home/sandra/.bashrc
+/home/sandra/.bash_logout
+/home/gilbert/dad.txt
+/srv/.dad
+
+gilbert@tonhotel:~$ ls -la /srv
+total 6080
+drwxr-xr-x  2 root   root       4096 Jul 19  2024 .
+drwxr-xr-x 19 root   root       4096 Oct 22  2022 ..
+-rw-r-----  1 sandra gilbert     183 Sep 10  2023 .dad
+-rwx--x---  1 root   gilbert 3234904 Jul 19  2024 nycomm_link_v7895
+-rwx------  1 root   root    2976128 Sep  9  2023 tonhotel
+
+gilbert@tonhotel:~$ cat /srv/.dad
+i cant deal with your attacks on my friends rn dad, i need to take some time away from the hotel. if you need access to the ton site, my pw is where id rather be: anywherebuthere. -S
+```
+
+> I can only execute this file which listens on port 3000
+
+```shell
+gilbert@tonhotel:/srv$ ./nycomm_link_v7895 
+no bind specified, defaulting
+listening on 0.0.0.0:3000
+```
+
+> Then I thought I can fetch the contents, and it was just nycomm login page
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2011-04-57.png)
+
