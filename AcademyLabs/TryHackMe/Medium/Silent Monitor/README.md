@@ -73,3 +73,27 @@ admin' OR '1'='1' -- -
 
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2021-16-31.png)
+
+
+---
+
+## Reverse Shell via Command Injection
+
+> Well, I tried many payloads, but almost all of them gave syntax errors, so I had to go for a simple one.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2021-57-32.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2021-57-01.png)
+
+---
+
+## Initial Foothold & Local Enum
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2022-01-16.png)
+
+---
+
+## Lateral Movement - Sysadmin
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2022-06-50.png)
+
