@@ -12,3 +12,14 @@
 The portal is up. The services show green. The audit log looks clean.
 But clean logs can be written by anyone.
 Your job is to get in, move through the system, and find out what is really running behind the secret dashboard.
+
+
+---
+
+### Objectives
+ 
+ - What is the content of user.txt?
+ - What is the content of root.txt?
+
+---
+
