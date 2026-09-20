@@ -54,6 +54,22 @@ admin' OR '1'='1' -- -
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2020-39-46.png)
 
 
-> While navigating through the tabs, I instantly noticed the ping function, easy command injection here XD.
+> While navigating through the tabs, I instantly noticed the ping function, command injection here XD.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2020-41-20.png)
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/neuron.jpg)
+
+
+> Well I tried some injection attempts, like `|`, `&`, and `;`, even tried some blind injection but `$` also caused errors. Looks like there was not any command injection.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2021-16-01.png)
+
+> .. Or was there?
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/vsauce.jpg)
+
+> See, I noticed a command injection attempt in the logs of the dashboard: `127.0.0.1%0awhoami` a bypass technique where you inject a null byte, and pass a second command. But when I tried using it, it did not work. So I opened the burpsuite, and noticed we can actually pass the second command using a new line, which you can't do inside a web-browser. It is called a **CRLF Injection**, where you pass `\r\n`, \r representing the end of the line, and \n being beginning of a new line.
+
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2021-16-31.png)
