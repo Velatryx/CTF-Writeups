@@ -56,6 +56,4 @@ admin' OR '1'='1' -- -
 
 > While navigating through the tabs, I instantly noticed the ping function, easy command injection here XD.
 
-![image](https://github.com/Velatryx/CTF-Writeups/upload/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images)
-
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/neuron.jpg)
