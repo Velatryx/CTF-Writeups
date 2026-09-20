@@ -23,3 +23,39 @@ Your job is to get in, move through the system, and find out what is really runn
 
 ---
 
+> Add the target to hosts
+
+```zsh
+sudo echo -e '10.129.154.142 silent.thm' | sudo tee -a /etc/hosts
+```
+---
+
+## Enum & Recon
+
+```zsh
+nmap silent.thm --min-rate=1000 -p-
+Starting Nmap 7.99 ( https://nmap.org ) at 2026-09-20 12:18 -0400
+Nmap scan report for silent.thm (10.129.154.142)
+Host is up (0.077s latency).
+Not shown: 65533 closed tcp ports (reset)
+PORT     STATE SERVICE
+22/tcp   open  ssh
+5050/tcp open  mmcc
+```
+
+From the feroxbuster, I got no output, and I still do not know why. I discovered from another place that `/internal` endpoint was actually open, though feroxbuster gave no output of it. Anyway, I discovered a login portal in this endpoint, and there was no other clue, so it had to be a SQL injection. I tried some manual payloads, and got a hit with 
+
+```SQL
+admin' OR '1'='1' -- -
+```
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2020-38-53.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2020-39-46.png)
+
+
+> While navigating through the tabs, I instantly noticed the ping function, easy command injection here XD.
+
+![image](https://github.com/Velatryx/CTF-Writeups/upload/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/neuron.jpg)
