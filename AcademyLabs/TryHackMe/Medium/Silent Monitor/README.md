@@ -13,6 +13,7 @@ The portal is up. The services show green. The audit log looks clean.
 But clean logs can be written by anyone.
 Your job is to get in, move through the system, and find out what is really running behind the secret dashboard.
 
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2022-47-54.png)
 
 ---
 
@@ -97,3 +98,40 @@ admin' OR '1'='1' -- -
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2022-06-50.png)
 
+
+> Then I found keepass db file under ~/backups, but it was being protected by a master key. To crack it, we can use `keepass2john`, however, make sure you use the updated version, otherwise you might run into an error due to the version.
+
+> Use the latest jumbo-branch:
+
+```zsh
+git clone https://github.com/openwall/john.git       
+cd john/src
+./configure && make -s clean && make -sj4
+```
+
+> Transfering the file to local machine, and cracking it:
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2022-34-15.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2022-35-13.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2022-33-53.png)
+
+> Download keepassxc, if you haven't
+
+```zsh
+sudo apt install keepassxc
+```
+
+---
+
+## Privilege Escalation
+
+> I simply ran `keepassxc` in my terminal, and chose the database, and entered the password. Now we can substitute user to root.
+
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Silent%20Monitor/Images/Screenshot%20From%202026-09-20%2022-44-05.png)
+
+---
+
+Well, this was fun! I haven't done a tryhackme room in a while, so it was a good and rather easy refresher for me! :D
