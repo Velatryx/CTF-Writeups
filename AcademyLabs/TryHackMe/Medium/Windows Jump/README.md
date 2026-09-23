@@ -288,3 +288,16 @@ PS C:\Windows\Tasks>
 
 > Overwrite the content with echo:
 
+```Powershell
+echo C:\Windows\Tasks\cleanup.exe > .\cleanup.bat
+```
+
+> Open a listener on port 9001, receive the connection and read the flag.
+
+```Powershell
+type C:\flag4.txt
+```
+
+---
+
+> The lab was too problematic for me, I had to restart like 9-10 times, did the whole thing from the start, but unfortunately for me, it did not work out, and the last reverse shell was just impossible to get, though I was doing everything right, even with the help of writeups. Sorry about that :( 
