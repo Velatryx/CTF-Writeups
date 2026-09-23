@@ -10,6 +10,7 @@
 
 > guest->thmuser->notadmin->svcadmin->SYSTEM
 
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Windows%20Jump/Images/Screenshot%20From%202026-09-23%2020-16-56.png)
 
 ---
 
