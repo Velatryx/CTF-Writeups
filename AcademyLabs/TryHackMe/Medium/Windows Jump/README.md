@@ -128,7 +128,7 @@ reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
 > I used runas to drop a shell and read the second flag inside "C:\Users\notadmin\Desktop\flag2.txt"
 
 ```Powershell
-runas /user:notadmin "cmd.exe"
+runas /user:notadmin "powershell.exe"
 ```
 
 ![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Windows%20Jump/Images/Screenshot%20From%202026-09-23%2010-57-15.png)
@@ -140,4 +140,19 @@ type C:\Users\notadmin\Desktop\flag2.txt
 ```
 
 ---
+
+## PrivEsc - svcadmin
+
+> I enumerated running services, and looked for a service running looking suspicious by the user `svcadmin`
+
+```Powershell
+wmic service get Name,DisplayName,StartName,PathName | findstr svcadmin
+```
+
+> And there was a service under the name of `THMSvc` running. Using `icacls` we can see what permissions our group or user has on the service.
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Medium/Windows%20Jump/Images/Screenshot%20From%202026-09-23%2013-28-35.png)
+
+
+> Looks like we actually have write permissions, leading to `service binary hijack`, where we can override the `srv.exe`, restart the service and execute it under the name of `svcadmin` user.
 
