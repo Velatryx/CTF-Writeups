@@ -96,3 +96,46 @@ MAGNA::MAGNAISANELEPHANT
 ssh magna@anon.thm
 ```
 
+```zsh
+magna@ip-10-128-189-54:~$ ls -la
+total 64
+drwxr-xr-x 7 magna  magna  4096 Jul 10  2020 .
+drwxr-xr-x 6 root   root   4096 Sep 30 14:31 ..
+lrwxrwxrwx 1 root   root      9 Jul  4  2020 .bash_history -> /dev/null
+-rw-r--r-- 1 magna  magna   220 Jul  4  2020 .bash_logout
+-rw-r--r-- 1 magna  magna  3771 Jul  4  2020 .bashrc
+drwx------ 2 magna  magna  4096 Jul  4  2020 .cache
+drwxr-xr-x 3 magna  magna  4096 Jul  7  2020 .config
+-r-------- 1 magna  magna    33 Jul  4  2020 flag.txt
+drwx------ 3 magna  magna  4096 Jul  4  2020 .gnupg
+-rwsr-xr-x 1 root   root   8528 Jul 10  2020 hacktheworld
+drwxrwxr-x 3 magna  magna  4096 Jul  4  2020 .local
+-rw-r--r-- 1 spooky spooky  324 Jul  6  2020 note_from_spooky.txt
+-rw-r--r-- 1 magna  magna   807 Jul  4  2020 .profile
+drwx------ 2 magna  magna  4096 Jul  4  2020 .ssh
+-rw------- 1 magna  magna   817 Jul  7  2020 .viminfo
+magna@ip-10-128-189-54:~$ cat note_from_spooky.txt 
+Hey Magna,
+
+Check out this binary I made!  I've been practicing my skills in C so that I can get better at Reverse
+Engineering and Malware Development.  I think this is a really good start.  See if you can break it!
+
+P.S. I've had the admins install radare2 and gdb so you can debug and reverse it right here!
+
+Best,
+Spooky
+```
+
+> So as soon as I noticed it asked for input after executing the binary file Spooky created, I tested for Buffer Overflow, as we can confirm from the segmentation fault error.
+
+```zsh
+magna@ip-10-128-189-54:~$ ./hacktheworld 
+Who do you want to hack? world
+magna@ip-10-128-189-54:~$ ./hacktheworld
+Who do you want to hack? 
+magna@ip-10-128-189-54:~$ ./hacktheworld
+Who do you want to hack? aaaaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+Segmentation fault (core dumped)
+```
+
+> The C code does not properly check the bounds. We need to reverse engineer it, 
