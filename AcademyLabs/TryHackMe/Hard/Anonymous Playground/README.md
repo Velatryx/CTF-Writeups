@@ -83,8 +83,7 @@ Connection: keep-alive
 > It looks like we have to decode this. From the structure of it, it's really easy to tell that `::` is the separator for something like `username:password`. Secondly, there was a pattern - one lowercase and one uppercase character, and finally another clue is that there is a partial repetition in password section which has the same string from username in its first part. Which we can conclude it's something like `user:user123@!` for SSH. Now, with the help of the hint, we see `zA is 'a'`. Firstly, I converted `z` to its alphabetical position - `26`, and `A` to `27` as it was uppercase, and tried to solve it like `27-26=1` which made sense, as 'a' would be 1. But as it did not work, I used `A` as 1 as well, and solved it like `26+1=1`, as the next letter after `z` would be `a` if we think of it as a loop. Finally, the credentials we get is:
 
 ```
-MAGNA::MAGNAISANELEPHANT
-```
+magna:magnaisanelephant```
 
 ---
 
@@ -126,7 +125,13 @@ Best,
 Spooky
 ```
 
-> So as soon as I noticed it asked for input after executing the binary file Spooky created, I tested for Buffer Overflow, as we can confirm from the segmentation fault error.
+> Firstly, I checke the file type
+
+```zsh
+hacktheworld: setuid ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=7de2fcf9c977c96655ebae5f01a013f3294b6b31, not stripped
+```
+
+> And as soon as I noticed it asked for input after executing the binary file Spooky created, I tested for Buffer Overflow, as we can confirm from the segmentation fault error.
 
 ```zsh
 magna@ip-10-128-189-54:~$ ./hacktheworld 
@@ -138,4 +143,39 @@ Who do you want to hack? aaaaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 Segmentation fault (core dumped)
 ```
 
-> The C code does not properly check the bounds. We need to reverse engineer it, 
+> The C code does not properly check the bounds. We need to reverse engineer it, and trigger a buffer overflow to get a shell as the user `spooky`. First, I used strings to dump the cleartext strings, rather than unreadable binary code. You can find the full output [here](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Anonymous%20Playground/strings_output.txt)
+
+> The interesting part is:
+
+```
+setuid
+gets
+puts
+printf
+system
+sleep
+__libc_start_main
+GLIBC_2.2.5
+__gmon_start__
+AWAVI
+AUATL
+[]A\A]A^A_
+We are Anonymous.
+We are Legion.
+We do not forgive.
+We do not forget.
+[Message corrupted]...Well...done.
+/bin/sh
+Who do you want to hack? 
+```
+
+> Readelf:
+
+```zsh
+readelf -s hacktheworld
+
+50: 0000000000400657   129 FUNC    GLOBAL DEFAULT   13 call_bash (Interesting Line)
+```
+
+> The thing is: puts is a vulnerable function, which is vulnerable to buffer overflow attacks. But we still need to rebuild the code identical to original code.
+
