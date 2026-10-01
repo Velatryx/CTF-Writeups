@@ -177,5 +177,92 @@ readelf -s hacktheworld
 50: 0000000000400657   129 FUNC    GLOBAL DEFAULT   13 call_bash (Interesting Line)
 ```
 
-> The thing is: puts is a vulnerable function, which is vulnerable to buffer overflow attacks. But we still need to rebuild the code identical to original code.
+> The thing is: puts is a vulnerable function, which is vulnerable to buffer overflow attacks. But for it to be completely understandable, let's walk through the vulnerability itself, and how we can exploit the binary in this case.
+
+---
+
+## Explanation of Buffer Overflow for Newbies:
+
+> What is a program? It is a set of instruction which the CPU follows. Each instruction has its own memory address. We may show a simple example like
+
+```
+Address    Instruction
+100        print "Hello"
+104        print "World"
+108        stop
+```
+
+> Okay, now what is a function? Well, in programming, you would want to reuse a code. Instead of writing it from the scratch, you give the function a name and call it which contains the code you want to run. Let it be `say_hello` which lives in memory address `200` in this instance for us. When the main program wants to say hello, it jumps to that memory address, runs it, and goes back where it was. How do we know where it comes back? We look at the sticky note in memory called ***return address***. When say_hello finishes at address 200, it looks at the sticky note, sees "108", and jumps back there.
+
+```C
+// Main program:
+100   do stuff
+104   jump to say_hello, remember to come back to 108
+108   do more stuff
+```
+
+> And... Where does the sticky note live? The stack. The stack is just a chunk of memory the program uses as scratch space. Each time a function is called, the program puts a new sticky note (return address) on the top of the stack. We can picture it like this:
+
+```
+Top of stack → [ return address ]   ← the note for the current function
+               [ saved register  ]
+               [ local variables ]
+               [ ...             ]
+Bottom
+```
+
+#### *What is a buffer?*
+
+> When a function needs to store something the user typed (like a name), it reserves a box on the stack. That box is called a buffer. Say the box is 64 bytes big:
+
+```
+               [ return address ]   ← sticky note
+               [ saved stuff    ]
+               [ buffer: 64 bytes ] ← the box for your input
+```
+
+---
+
+
+> Now we have the basic understanding, we can move onto our own code. The original code prints the slogan and calls the function below after a successful buffer overflow attack. This is cause by the vulnerable function called `gets()`. The program reads your name, and writes it to the buffer, but does not actually check that if the user input is bigger/longer than the allowed buffer.
+
+```
+Before overflow:
+[ return address ]    ← important!
+[ saved stuff    ]
+[ buffer: 64 bytes ]
+
+After overflow (typing 200 A's):
+[ AAAAAAAA ]  ← A's overwrote the return address!
+[ AAAAAAAA ]
+[ AAAAA...  ]  ← 64 bytes of A's filled the buffer
+```
+
+> Now the return address is just `AAAA`, not a real memory address. So it jumps to the non-existent memory address, and causes segmentation fault we saw. Okay, but how do we control where CPU jumps to in memory? We have to replace the return address with the function's we want to execute. It will be `call_bash()` function at address 0x400657 in this case. We know from the output of readelf its memory address. Now we need to replace it. We need to fill the first 72 bytes with junk, and fill the memory address with the memory address of the function `call_bash()` which spawns /bin/sh. The next 8 bytes land exactly on the return address.
+
+```C
+void call_bash() {
+    system("/bin/sh");
+}
+```
+
+> However, there's a catch. On 64-bit Linux, there's a rule: when certain functions (like system) are called, the stack must be aligned to 16 bytes. If it's not, the program crashes inside system instead of giving a shell. We need to jump to a ret instruction first. That ret pops 8 bytes off the stack (fixing alignment), then jumps to whatever is next on the stack, which will be call_bash. Now the payload becomes:
+
+```
+[ 72 bytes junk ][ address of ret ][ address of call_bash ]
+```
+
+> The ret we use is at 0x40070f (it's just the ret at the end of main). And it becomes:
+
+```
+b'A' * 72                          # 72 junk bytes
++ (0x40070f).to_bytes(8, 'little') # address of ret, 8 bytes
++ (0x400657).to_bytes(8, 'little') # address of call_bash, 8 bytes
+```
+
+> Now we can construct the payload using python:
+
+```python3
+(python3 -c "import sys; sys.stdout.buffer.write(b'A'*72 + (0x40070f).to_bytes(8,'little') + (0x400657).to_bytes(8,'little'))"; cat) | ./hacktheworld
+```
 
